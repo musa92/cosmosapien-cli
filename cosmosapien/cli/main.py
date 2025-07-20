@@ -555,7 +555,7 @@ def login(
         print_error("Unknown provider: {provider}")
         print_error("Available providers: {', '.join(get_all_providers())}")
         raise typer.Exit(1)
-
+    
     if auth_manager.login(provider, api_key):
         print_success("Logged in to {provider}")
     else:
@@ -577,13 +577,13 @@ def logout(provider: str = typer.Argument(..., help="Provider name to logout fro
 def status():
     """Show login status for all providers."""
     providers = auth_manager.list_providers()
-
+    
     table = Table(title="Provider Status")
     table.add_column("Provider", style="cyan", no_wrap=True)
     table.add_column("Tier", style="magenta", no_wrap=True)
     table.add_column("Status", style="green")
     table.add_column("Logged In", style="yellow")
-
+    
     for provider in providers:
         provider_name = provider["provider"]
         status_icon = "✓" if provider["logged_in"] else "✗"
@@ -604,7 +604,7 @@ def status():
             status_icon,
             "Yes" if provider["logged_in"] else "No",
         )
-
+    
     console.print(table)
 
     # Add tier explanation
@@ -682,7 +682,7 @@ def ask(
     ),
 ):
     """Ask a question to any supported LLM provider."""
-
+    
     async def _ask():
         try:
             # Use smart routing if requested
@@ -740,7 +740,7 @@ def ask(
                 transient=True,
             ) as progress:
                 task = progress.add_task("Generating response...", total=None)
-
+                
                 response = await router.generate(
                     prompt=prompt,
                     provider=selected_provider,
@@ -748,12 +748,12 @@ def ask(
                     max_tokens=max_tokens,
                     temperature=temperature,
                 )
-
+            
             # Display the response
             console.print("\n")
             console.print(
                 Panel(
-                    Markdown(response.content),
+                Markdown(response.content),
                     title=f"[bold]{get_provider_display_name(response.provider)} ({response.model})[/bold]",
                     border_style="blue",
                 )
@@ -770,12 +770,12 @@ def ask(
                 usage_table = Table(title="Usage Information")
                 usage_table.add_column("Metric", style="cyan")
                 usage_table.add_column("Value", style="green")
-
+                
                 for key, value in response.usage.items():
                     usage_table.add_row(key.replace("_", " ").title(), str(value))
-
+                
                 console.print(usage_table)
-
+                
         except Exception as e:
             print_error(str(e))
             if smart_route:
@@ -783,7 +783,7 @@ def ask(
                     "[yellow]Smart routing failed. Try using a specific provider with --provider.[/yellow]"
                 )
             raise typer.Exit(1)
-
+    
     asyncio.run(_ask())
 
 
@@ -798,11 +798,11 @@ def chat(
     ),
 ):
     """Start an interactive chat session."""
-
+    
     async def _chat():
         try:
             messages = []
-
+            
             # Use open-source defaults if no provider specified
             chat_provider = provider
             chat_model = model
@@ -816,25 +816,25 @@ def chat(
             # Add system message if provided
             if system_prompt:
                 messages.append(ChatMessage(role="system", content=system_prompt))
-
+            
             console.print(
                 "[bold blue]Chat session started. Type 'quit' to exit.[/bold blue]\n"
             )
-
+            
             while True:
                 # Get user input
                 user_input = Prompt.ask("[bold green]You[/bold green]")
-
+                
                 if user_input.lower() in ["quit", "exit", "q"]:
                     console.print("[yellow]Goodbye![/yellow]")
                     break
-
+                
                 if not user_input.strip():
                     continue
-
+                
                 # Add user message
                 messages.append(ChatMessage(role="user", content=user_input))
-
+                
                 try:
                     with Progress(
                         SpinnerColumn(),
@@ -843,35 +843,35 @@ def chat(
                         transient=True,
                     ) as progress:
                         task = progress.add_task("Thinking...", total=None)
-
+                        
                         response = await router.chat(
                             messages=messages,
                             provider=chat_provider,
                             model=chat_model,
                         )
-
+                    
                     # Add assistant response
                     messages.append(
                         ChatMessage(role="assistant", content=response.content)
                     )
-
+                    
                     # Display response
                     console.print(
                         "\n[bold blue]{response.provider.title()}[/bold blue]: {response.content}\n"
                     )
-
+                    
                 except Exception as e:
                     print_error(str(e))
                     # Remove the last user message if there was an error
                     if messages and messages[-1].role == "user":
                         messages.pop()
-
+                
         except KeyboardInterrupt:
             console.print("\n[yellow]Chat session interrupted.[/yellow]")
         except Exception as e:
             print_error(str(e))
             raise typer.Exit(1)
-
+    
     asyncio.run(_chat())
 
 
@@ -887,7 +887,7 @@ def debate(
     rounds: int = typer.Option(3, "--rounds", "-r", help="Number of debate rounds"),
 ):
     """Run a debate between multiple AI models."""
-
+    
     async def _debate():
         try:
             # Parse model configurations
@@ -901,40 +901,40 @@ def debate(
                         "Invalid model format: {model_str}. Use provider:model format."
                     )
                     raise typer.Exit(1)
-
+            
             if len(model_configs) < 2:
                 print_error("At least 2 models are required for a debate.")
                 raise typer.Exit(1)
-
+            
             console.print(
                 "[bold blue]Starting debate with {len(model_configs)} models for {rounds} rounds[/bold blue]\n"
             )
             console.print(Panel("[bold]Topic:[/bold] {prompt}", border_style="blue"))
             console.print("\n")
-
+            
             responses = await router.debate(
                 prompt=prompt,
                 models=model_configs,
                 rounds=rounds,
             )
-
+            
             # Display debate results
             for i, response in enumerate(responses):
                 round_num = (i // len(model_configs)) + 1
-
+                
                 console.print(
                     Panel(
-                        Markdown(response.content),
+                    Markdown(response.content),
                         title="[bold]Round {round_num} - {model_name}[/bold]",
                         border_style="green" if round_num % 2 == 1 else "yellow",
                     )
                 )
                 console.print("\n")
-
+                
         except Exception as e:
             print_error(str(e))
             raise typer.Exit(1)
-
+    
     asyncio.run(_debate())
 
 
@@ -977,40 +977,33 @@ def list_models(
         # Use provider API (legacy method)
         if provider:
             if provider not in model_registry.list_models():
-                print_error("Unknown provider: {provider}")
+                print_error(f"Unknown provider: {provider}")
                 raise typer.Exit(1)
-
             try:
                 # Create a dummy instance to get available models
                 model_class = model_registry.get(provider)
                 if model_class:
                     dummy_instance = model_class("dummy")
                     models = dummy_instance.get_available_models()
-
-                    table = Table(title="Available Models for {provider.title()}")
+                    table = Table(title=f"Available Models for {provider.title()}")
                     table.add_column("Model", style="cyan")
-
                     for model in models:
                         table.add_row(model)
-
                     console.print(table)
                 else:
-                    print_error("Provider {provider} not found")
+                    print_error(f"Provider {provider} not found")
                     raise typer.Exit(1)
-
-            except Exception:
-                print_error("Error listing models for {provider}: {str(e)}")
+            except Exception as e:
+                print_error(f"Error listing models for {provider}: {str(e)}")
                 raise typer.Exit(1)
         else:
             # List all providers
             table = Table(title="Available Providers")
             table.add_column("Provider", style="cyan")
             table.add_column("Status", style="green")
-
             for provider in model_registry.list_models():
                 status = "✓" if auth_manager.is_logged_in(provider) else "✗"
                 table.add_row(provider.title(), status)
-
             console.print(table)
 
 
@@ -2525,7 +2518,7 @@ def config():
             "[bold]Memory Enabled:[/bold] {config.memory_enabled}\n"
             "[bold]Memory Path:[/bold] {config.memory_path}\n"
             "[bold]Plugins Path:[/bold] {config.plugins_path}",
-            title="[bold]Configuration[/bold]",
+        title="[bold]Configuration[/bold]",
             border_style="blue",
         )
     )
@@ -2562,4 +2555,4 @@ def config():
 
 
 if __name__ == "__main__":
-    app()
+    app() 
