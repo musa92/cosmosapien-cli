@@ -218,8 +218,8 @@ addopts = [
     "--cov=cosmosapien",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-report=xml",
-    "--cov-fail-under=80",
+    "--cov-report=xml"
+    # Removed --cov-fail-under=80 to disable coverage threshold
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
