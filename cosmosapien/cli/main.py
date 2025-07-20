@@ -2786,5 +2786,11 @@ app.command()(list_local_models)
 
 # Remove any fallback definition of list_local_models from main.py if present.
 
+# Import and register the orchestrate command from commands/orchestrate.py
+from .commands.orchestrate import orchestrate
+app.command()(orchestrate)
+
+# Remove the orchestrate command definition from main.py if still present.
+
 if __name__ == "__main__":
     app() 
