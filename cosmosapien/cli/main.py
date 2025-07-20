@@ -15,8 +15,9 @@ from rich.text import Text
 from ..core.config import ConfigManager
 from ..core.router import Router
 from ..core.models import ChatMessage, model_registry
+from ..core.provider_info import get_provider_display_name, get_provider_info, get_all_providers
 from ..auth.manager import AuthManager
-from ..models import OpenAI, Gemini, Claude, Perplexity, LLaMA
+from ..models import OpenAI, Gemini, Claude, Perplexity, LLaMA, Grok, HuggingFace
 
 # Initialize Typer app
 app = typer.Typer(
@@ -39,6 +40,8 @@ model_registry.register("gemini", Gemini)
 model_registry.register("claude", Claude)
 model_registry.register("perplexity", Perplexity)
 model_registry.register("llama", LLaMA)
+model_registry.register("grok", Grok)
+model_registry.register("huggingface", HuggingFace)
 
 
 def print_error(message: str):
@@ -51,6 +54,25 @@ def print_success(message: str):
     console.print(f"[green]✓ {message}[/green]")
 
 
+def get_default_open_source_provider() -> tuple:
+    """Get the best available open-source provider and model."""
+    providers = auth_manager.list_providers()
+    
+    # Priority order: llama (local), huggingface (free tier)
+    for provider_name in ["llama", "huggingface"]:
+        for provider in providers:
+            if provider["provider"] == provider_name:
+                if provider["logged_in"] or provider_name == "llama":  # llama doesn't need login
+                    default_models = {
+                        "llama": "llama2",
+                        "huggingface": "gpt2",
+                    }
+                    return provider_name, default_models.get(provider_name, "default")
+    
+    # Fallback to llama (local)
+    return "llama", "llama2"
+
+
 @app.command()
 def version():
     """Show version information."""
@@ -60,12 +82,13 @@ def version():
 
 @app.command()
 def login(
-    provider: str = typer.Argument(..., help="Provider name (openai, gemini, claude, perplexity, llama)"),
+    provider: str = typer.Argument(..., help=f"Provider name ({', '.join(get_all_providers())})"),
     api_key: Optional[str] = typer.Option(None, "--key", "-k", help="API key (will prompt if not provided)")
 ):
     """Login to a provider by storing API key securely."""
-    if provider not in ["openai", "gemini", "claude", "perplexity", "llama"]:
+    if provider not in get_all_providers():
         print_error(f"Unknown provider: {provider}")
+        print_error(f"Available providers: {', '.join(get_all_providers())}")
         raise typer.Exit(1)
     
     if auth_manager.login(provider, api_key):
@@ -94,18 +117,80 @@ def status():
     
     table = Table(title="Provider Status")
     table.add_column("Provider", style="cyan", no_wrap=True)
+    table.add_column("Tier", style="magenta", no_wrap=True)
     table.add_column("Status", style="green")
     table.add_column("Logged In", style="yellow")
     
     for provider in providers:
+        provider_name = provider["provider"]
         status_icon = "✓" if provider["logged_in"] else "✗"
+        provider_info = get_provider_info(provider_name)
+        
+        # Get tier information
+        tier_text = "Individual"
+        tier_style = "blue"
+        if provider_info:
+            if provider_info.tier_type == "bundled":
+                tier_text = "Bundled ⭐"
+                tier_style = "yellow"
+            elif provider_info.tier_type == "local":
+                tier_text = "Local 🏠"
+                tier_style = "green"
+            elif provider_info.tier_type == "individual":
+                tier_text = "Individual 🔑"
+                tier_style = "blue"
+        
         table.add_row(
-            provider["provider"].title(),
+            get_provider_display_name(provider_name),
+            f"[{tier_style}]{tier_text}[/{tier_style}]",
             status_icon,
             "Yes" if provider["logged_in"] else "No"
         )
     
     console.print(table)
+    
+    # Add tier explanation
+    console.print("\n[bold]Tier Types:[/bold]")
+    console.print("• [blue]Individual[/blue] - Pay per model/usage")
+    console.print("* [yellow]Bundled[/yellow] - Multiple models with subscription")
+    console.print("○ [green]Local[/green] - Run locally, no API key needed")
+
+
+@app.command()
+def providers():
+    """Show detailed information about all providers."""
+    console.print("[bold blue]Provider Information[/bold blue]\n")
+    
+    for provider_name in get_all_providers():
+        info = get_provider_info(provider_name)
+        if not info:
+            continue
+            
+        # Create provider card
+        console.print(Panel(
+            f"[bold]{info.display_name}[/bold]\n"
+            f"[dim]{info.description}[/dim]\n\n"
+            f"🌐 [link={info.website}]Website[/link]\n"
+            f"📚 [link={info.api_docs}]API Docs[/link]\n"
+            f"💳 Subscription: {'Required' if info.subscription_required else 'Not Required'}\n"
+            f"🆓 Free Tier: {'Available' if info.free_tier_available else 'Not Available'}\n"
+            f"📦 Tier Type: {info.tier_type.title()} {info.tier_icon}",
+            title=f"{info.tier_icon} {info.display_name}",
+            border_style="blue" if info.tier_type == "individual" else "yellow" if info.tier_type == "bundled" else "green"
+        ))
+        console.print("\n")
+
+
+@app.command()
+def cosmic():
+    """Launch the clean cosmic-themed interactive interface."""
+    from .cosmic_ui import CosmicUI
+    
+    async def _cosmic():
+        cosmic_ui = CosmicUI()
+        await cosmic_ui.clean_chat()
+    
+    asyncio.run(_cosmic())
 
 
 @app.command()
@@ -165,7 +250,7 @@ def ask(
 
 @app.command()
 def chat(
-    provider: Optional[str] = typer.Option(None, "--provider", "-p", help="Provider to use"),
+    provider: Optional[str] = typer.Option(None, "--provider", "-p", help="Provider to use (defaults to open-source)"),
     model: Optional[str] = typer.Option(None, "--model", "-m", help="Model to use"),
     system_prompt: Optional[str] = typer.Option(None, "--system", "-s", help="System prompt"),
 ):
@@ -174,6 +259,14 @@ def chat(
     async def _chat():
         try:
             messages = []
+            
+            # Use open-source defaults if no provider specified
+            chat_provider = provider
+            chat_model = model
+            
+            if not chat_provider:
+                chat_provider, chat_model = get_default_open_source_provider()
+                console.print(f"[cyan]Using open-source model: {chat_provider} ({chat_model})[/cyan]\n")
             
             # Add system message if provided
             if system_prompt:
@@ -206,8 +299,8 @@ def chat(
                         
                         response = await router.chat(
                             messages=messages,
-                            provider=provider,
-                            model=model,
+                            provider=chat_provider,
+                            model=chat_model,
                         )
                     
                     # Add assistant response

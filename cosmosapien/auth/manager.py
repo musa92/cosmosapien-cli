@@ -4,6 +4,7 @@ import getpass
 import keyring
 from typing import Optional
 from ..core.config import ConfigManager
+from ..core.provider_info import get_all_providers
 
 
 class AuthManager:
@@ -79,7 +80,7 @@ class AuthManager:
     def list_providers(self) -> list:
         """List all providers with login status."""
         providers = []
-        for provider in ["openai", "gemini", "claude", "perplexity", "llama"]:
+        for provider in get_all_providers():
             status = "✓" if self.is_logged_in(provider) else "✗"
             providers.append({
                 "provider": provider,
