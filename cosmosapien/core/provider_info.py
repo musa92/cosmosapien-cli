@@ -1,12 +1,13 @@
 """Provider information and metadata."""
 
-from typing import Dict, List, Optional
 from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 
 @dataclass
 class ProviderInfo:
     """Information about a provider."""
+
     name: str
     display_name: str
     tier_type: str  # "individual", "bundled", "mixed"
@@ -62,7 +63,12 @@ PROVIDER_INFO: Dict[str, ProviderInfo] = {
         description="Bundled access to multiple models with subscription",
         website="https://perplexity.ai",
         api_docs="https://docs.perplexity.ai",
-        models_included=["llama-3.1-sonar-small", "llama-3.1-sonar-medium", "mixtral", "codellama"],
+        models_included=[
+            "llama-3.1-sonar-small",
+            "llama-3.1-sonar-medium",
+            "mixtral",
+            "codellama",
+        ],
         subscription_required=True,
         free_tier_available=True,
     ),
@@ -96,7 +102,15 @@ PROVIDER_INFO: Dict[str, ProviderInfo] = {
         description="Access to thousands of open-source models",
         website="https://huggingface.co",
         api_docs="https://huggingface.co/docs/api-inference",
-        models_included=["llama-2", "gpt2", "falcon", "mpt", "bloom", "qwen", "chatglm"],
+        models_included=[
+            "llama-2",
+            "gpt2",
+            "falcon",
+            "mpt",
+            "bloom",
+            "qwen",
+            "chatglm",
+        ],
         subscription_required=False,
         free_tier_available=True,
     ),
@@ -138,4 +152,4 @@ def get_individual_providers() -> List[str]:
 
 def get_local_providers() -> List[str]:
     """Get providers that run locally."""
-    return get_providers_by_tier("local") 
+    return get_providers_by_tier("local")

@@ -6,4 +6,4 @@ __author__ = "Cosmosapien CLI Team"
 from .core.config import Config
 from .core.router import Router
 
-__all__ = ["Config", "Router"] 
+__all__ = ["Config", "Router"]
