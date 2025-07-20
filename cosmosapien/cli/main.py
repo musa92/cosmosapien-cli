@@ -1798,6 +1798,251 @@ def register_help():
 
 
 @app.command()
+def distribute(
+    prompt: str = typer.Argument(..., help="Prompt to distribute"),
+    job_type: str = typer.Option("auto", "--type", help="Job type: auto, single, parallel, pipeline, load_balanced, fallback"),
+    models: str = typer.Option(None, "--models", help="Comma-separated list of models (provider:model)"),
+    priority: int = typer.Option(3, "--priority", help="Job priority (1-5, 5=highest)"),
+    timeout: int = typer.Option(30, "--timeout", help="Timeout in seconds"),
+    explain: bool = typer.Option(False, "--explain", help="Show distribution decision without execution"),
+):
+    """Distribute jobs intelligently across multiple models."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor, JobType
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Parse job type
+        job_type_map = {
+            "auto": JobType.LOAD_BALANCED,  # Default to auto distribution
+            "single": JobType.SINGLE_TASK,
+            "parallel": JobType.PARALLEL_TASK,
+            "pipeline": JobType.PIPELINE_TASK,
+            "load_balanced": JobType.LOAD_BALANCED,
+            "fallback": JobType.FALLBACK_CHAIN
+        }
+        
+        if job_type not in job_type_map:
+            console.print(f"[red]Invalid job type: {job_type}[/red]")
+            console.print(f"Available types: {', '.join(job_type_map.keys())}")
+            return
+        
+        # Parse models
+        model_list = None
+        if models:
+            model_list = [m.strip() for m in models.split(",")]
+        
+        # Create job request
+        job_request = job_distributor.create_job(
+            prompt=prompt,
+            job_type=job_type_map[job_type],
+            models=model_list,
+            priority=priority,
+            timeout=timeout
+        )
+        
+        if explain:
+            # Show distribution decision
+            console.print(f"[bold]Job Distribution Decision[/bold]")
+            console.print(f"Job ID: {job_request.job_id}")
+            console.print(f"Job Type: {job_request.job_type.value}")
+            console.print(f"Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}")
+            console.print(f"Priority: {job_request.priority}")
+            console.print(f"Timeout: {job_request.timeout}s")
+            
+            # Show model status
+            stats = job_distributor.get_distribution_stats()
+            console.print(f"\n[bold]Model Status[/bold]")
+            for model_key, status in stats["model_status"].items():
+                console.print(f"  {model_key}: Load={status['current_load']}, Success={status['success_rate']:.2f}, Response={status['avg_response_time']:.2f}s")
+            
+            return
+        
+        # Execute job
+        console.print(f"[bold]Executing job: {job_request.job_id}[/bold]")
+        console.print(f"Type: {job_request.job_type.value}")
+        console.print(f"Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}")
+        
+        result = job_distributor.distribute_job(job_request)
+        
+        # Display result
+        if result.success:
+            console.print(f"\n[green]Job completed successfully![/green]")
+            console.print(f"Model used: {result.model_used}")
+            console.print(f"Execution time: {result.execution_time:.2f}s")
+            console.print(f"Tokens used: {result.tokens_used}")
+            
+            console.print(f"\n[bold]Response:[/bold]")
+            console.print(result.response)
+        else:
+            console.print(f"\n[red]Job failed![/red]")
+            console.print(f"Error: {result.error}")
+            console.print(f"Model attempted: {result.model_used}")
+            console.print(f"Execution time: {result.execution_time:.2f}s")
+        
+        # Save stats
+        job_distributor.save_stats()
+        
+    except Exception as e:
+        console.print(f"[red]Error during job distribution: {str(e)}[/red]")
+
+
+@app.command()
+def squeeze(
+    prompt: str = typer.Argument(..., help="Prompt to process"),
+    explain: bool = typer.Option(False, "--explain", help="Show routing decision without execution"),
+):
+    """Use all available free tiers and local models to process the task."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor, JobType
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Get all free tier and local models
+        free_models = []
+        models = model_library.list_models()
+        
+        for model in models:
+            if model.is_active:
+                # Check if it's a free tier model or local model
+                if (model.pricing.free_tier_limit > 0 or 
+                    model.is_local or 
+                    model.pricing.input_cost_per_1k_tokens == 0.0):
+                    free_models.append(f"{model.provider}:{model.model_id}")
+        
+        if not free_models:
+            console.print("[yellow]No free tier models available. Using smart routing instead.[/yellow]")
+            # Fallback to smart routing
+            routing_decision = smart_router.smart_route(prompt, explain_only=explain)
+            if explain:
+                console.print(f"[bold]Smart Routing Decision[/bold]")
+                console.print(f"Selected: {routing_decision.selected_provider}:{routing_decision.selected_model}")
+                console.print(f"Reasoning: {routing_decision.reasoning}")
+                console.print(f"Complexity: {routing_decision.complexity.value}")
+                return
+            
+            # Execute with smart routing
+            from ..models import get_model_instance
+            model_instance = get_model_instance(routing_decision.selected_provider, routing_decision.selected_model)
+            response = asyncio.run(model_instance.generate(prompt))
+            console.print(response.content)
+            return
+        
+        # Create job request for free tier distribution
+        job_request = job_distributor.create_job(
+            prompt=prompt,
+            job_type=JobType.PARALLEL_TASK,  # Try all free models in parallel
+            models=free_models,
+            priority=1,  # Low priority for free tier usage
+            timeout=60  # Longer timeout for free models
+        )
+        
+        if explain:
+            console.print(f"[bold]Squeeze Distribution Decision[/bold]")
+            console.print(f"Free models available: {len(free_models)}")
+            console.print(f"Models: {', '.join(free_models)}")
+            console.print(f"Strategy: Parallel execution across all free tiers")
+            return
+        
+        # Execute with free tier distribution
+        console.print(f"[bold]Squeezing across {len(free_models)} free models...[/bold]")
+        console.print(f"Models: {', '.join(free_models)}")
+        
+        result = job_distributor.distribute_job(job_request)
+        
+        # Display result
+        if result.success:
+            console.print(f"\n[green]Task completed using free tier![/green]")
+            console.print(f"Model used: {result.model_used}")
+            console.print(f"Execution time: {result.execution_time:.2f}s")
+            console.print(f"Cost: $0.00 (free tier)")
+            
+            console.print(f"\n[bold]Response:[/bold]")
+            console.print(result.response)
+        else:
+            console.print(f"\n[red]All free tiers failed![/red]")
+            console.print(f"Error: {result.error}")
+            console.print(f"Attempted models: {', '.join(free_models)}")
+        
+        # Save stats
+        job_distributor.save_stats()
+        
+    except Exception as e:
+        console.print(f"[red]Error during squeeze execution: {str(e)}[/red]")
+
+
+@app.command()
+def job_stats():
+    """Show job distribution statistics."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Get statistics
+        stats = job_distributor.get_distribution_stats()
+        
+        console.print("[bold blue]Job Distribution Statistics[/bold blue]\n")
+        
+        # Overall stats
+        console.print(f"[bold]Overall Performance[/bold]")
+        console.print(f"Active Jobs: {stats['active_jobs']}")
+        console.print(f"Completed Jobs: {stats['completed_jobs']}")
+        console.print(f"Average Response Time: {stats['performance']['avg_response_time']:.2f}s")
+        console.print(f"Total Success Rate: {stats['performance']['total_success_rate']:.2%}")
+        console.print(f"Total Errors: {stats['performance']['total_errors']}\n")
+        
+        # Model status
+        console.print(f"[bold]Model Status[/bold]")
+        if stats['model_status']:
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Model", style="cyan")
+            table.add_column("Load", justify="center")
+            table.add_column("Success Rate", justify="center")
+            table.add_column("Avg Response", justify="center")
+            table.add_column("Errors", justify="center")
+            table.add_column("Last Used", justify="center")
+            
+            for model_key, status in stats['model_status'].items():
+                table.add_row(
+                    model_key,
+                    str(status['current_load']),
+                    f"{status['success_rate']:.2%}",
+                    f"{status['avg_response_time']:.2f}s",
+                    str(status['error_count']),
+                    status['last_used'][:19] if status['last_used'] else "Never"
+                )
+            
+            console.print(table)
+        else:
+            console.print("No model statistics available.")
+        
+    except Exception as e:
+        console.print(f"[red]Error getting job statistics: {str(e)}[/red]")
+
+
+@app.command()
+def reset_job_stats():
+    """Reset job distribution statistics."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Reset stats
+        job_distributor.save_stats()
+        
+        console.print("[green]Job distribution statistics reset successfully![/green]")
+        
+    except Exception as e:
+        console.print(f"[red]Error resetting job statistics: {str(e)}[/red]")
+
+
+@app.command()
 def config():
     """Show current configuration."""
     config = config_manager.load()

@@ -11,6 +11,8 @@ Cosmosapien CLI provides a single interface to interact with various LLM provide
 ### Core Capabilities
 - **Multi-Provider Support**: OpenAI, Google Gemini, Claude, Perplexity, LLaMA (Ollama)
 - **Smart Routing**: Automatic model selection based on prompt complexity and cost optimization
+- **Auto-Distribution**: Intelligent task distribution across multiple models with load balancing
+- **Free Tier Optimization**: Maximize usage of free tiers and local models with `squeeze`
 - **Model Library**: Centralized model management with metadata and capabilities tracking
 - **Multi-Agent System**: Run debates and conversations between multiple AI models
 - **Local Model Support**: Integration with Ollama, LM Studio, and vLLM
@@ -23,6 +25,9 @@ Cosmosapien CLI provides a single interface to interact with various LLM provide
 - **Configuration Management**: TOML-based configuration with `.cosmosrc`
 - **Usage Tracking**: Monitor API usage and costs across providers
 - **Model Registration**: Easy model addition through interactive wizards and templates
+- **Performance Monitoring**: Track model performance, response times, and success rates
+- **Load Balancing**: Distribute workloads across available models efficiently
+- **Fallback Mechanisms**: Automatic failover to alternative models on errors
 
 ## Quick Start
 
@@ -43,17 +48,27 @@ pip install -e ".[dev]"
 ### Basic Usage
 
 ```bash
-# Authenticate with a provider
-cosmo login openai
-
-# Ask a question
+# Ask a question (uses smart routing by default)
 cosmo ask "Explain quantum computing in simple terms"
 
-# Start interactive chat
+# Start interactive chat with specific model
 cosmo chat --provider openai --model gpt-4
 
-# Use smart routing (automatically selects best model)
+# Use smart routing for complex tasks
 cosmo ask "Complex reasoning task" --smart-route
+
+# Auto-distribute jobs across models
+cosmo distribute "Complex analysis task"
+
+# Squeeze - use all free tiers and local models
+cosmo squeeze "Process this task"
+
+# Multi-agent debate
+cosmo debate "Should AI be regulated?" --models openai:gpt-4 claude:claude-3-sonnet
+
+# Register new models easily
+cosmo register-template gpt4
+cosmo register-quick myprovider mymodel --tier premium
 ```
 
 ## Project Structure
@@ -155,13 +170,27 @@ cosmo unregister <model-id>     # Remove model from library
 cosmo register-help             # Show registration help
 ```
 
-### Smart Routing
+### Smart Commands
 ```bash
+# Smart routing (single best model)
 cosmo ask <prompt> --smart-route    # Use intelligent routing
-cosmo ask <prompt> --squeeze        # Alias for smart routing
 cosmo smart-route <prompt>          # Show routing decision only
+
+# Auto-distribution (multiple models)
+cosmo distribute <prompt>           # Auto-distribute across available models
+cosmo distribute <prompt> --type parallel    # Parallel execution
+cosmo distribute <prompt> --type pipeline    # Sequential processing
+cosmo distribute <prompt> --explain          # Show distribution decision
+
+# Free tier optimization
+cosmo squeeze <prompt>              # Use all free tiers and local models
+cosmo squeeze <prompt> --explain    # Show free tier decision
+
+# Monitoring
 cosmo usage                         # Show usage statistics
+cosmo job-stats                     # Show distribution statistics
 cosmo reset-usage                   # Reset usage counters
+cosmo reset-job-stats               # Reset job statistics
 ```
 
 ### Configuration
