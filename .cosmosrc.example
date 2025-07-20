@@ -1,0 +1,37 @@
+# Cosmosapien CLI Configuration
+# Copy this file to ~/.cosmosrc and customize as needed
+
+# Default provider and model
+default_provider = "openai"
+default_model = "gpt-4"
+
+# Memory settings
+memory_enabled = true
+memory_path = "~/.cosmosapien/memory"
+plugins_path = "~/.cosmosapien/plugins"
+
+# Provider configurations
+[providers.openai]
+# API key will be stored securely via keyring
+# api_key = "your-openai-api-key"
+base_url = "https://api.openai.com/v1"
+models = { gpt-4 = "gpt-4", gpt-3_5_turbo = "gpt-3.5-turbo" }
+
+[providers.gemini]
+# API key will be stored securely via keyring
+# api_key = "your-gemini-api-key"
+models = { gemini_pro = "gemini-pro", gemini_pro_vision = "gemini-pro-vision" }
+
+[providers.claude]
+# API key will be stored securely via keyring
+# api_key = "your-claude-api-key"
+models = { claude_3_sonnet = "claude-3-sonnet-20240229", claude_3_opus = "claude-3-opus-20240229" }
+
+[providers.perplexity]
+# API key will be stored securely via keyring
+# api_key = "your-perplexity-api-key"
+models = { sonar_small = "llama-3.1-sonar-small-128k-online", sonar_medium = "llama-3.1-sonar-medium-128k-online" }
+
+[providers.llama]
+# No API key needed for local Ollama
+models = { llama2 = "llama2", codellama = "codellama", mistral = "mistral" } 
