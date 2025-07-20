@@ -143,12 +143,12 @@ include = '\.pyi?$'
 extend-exclude = '''
 /(
   # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
+  \\.eggs
+  | \\.git
+  | \\.hg
+  | \\.mypy_cache
+  | \\.tox
+  | \\.venv
   | build
   | dist
 )/
@@ -256,7 +256,7 @@ exclude_lines = [
     "raise NotImplementedError",
     "if 0:",
     "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
+    "class .*Protocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
 
@@ -274,20 +274,7 @@ version_files = [
     "cosmosapien/__init__.py:__version__",
 ]
 
-[tool.bumpversion]
-current_version = "0.1.0"
-parse = "(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
-serialize = ["{major}.{minor}.{patch}"]
-search = "version = \"{current_version}\""
-replace = "version = \"{new_version}\""
-
-[tool.bumpversion.file:pyproject.toml]
-search = "version = \"{current_version}\""
-replace = "version = \"{new_version}\""
-
-[tool.bumpversion.file:cosmosapien/__init__.py]
-search = "__version__ = \"{current_version}\""
-replace = "__version__ = \"{new_version}\""
+# Bumpversion configuration moved to separate .bumpversion.cfg file
 
 [tool.safety]
 output = "json" 
