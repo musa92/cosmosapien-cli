@@ -1,0 +1,12 @@
+# These are supported funding model platforms
+
+github: [cosmosapien] # Replace with a list of GitHub Sponsors-enabled usernames
+patreon: cosmosapien # Replace with a single Patreon username
+open_collective: cosmosapien # Replace with a single Open Collective name
+ko_fi: cosmosapien # Replace with a single Ko-fi username
+tidelift: cosmosapien # Replace with a single Tidelift subscription-name
+community_bridge: cosmosapien # Replace with a single Community Bridge project-name
+liberapay: cosmosapien # Replace with a single Liberapay username
+issuehunt: cosmosapien # Replace with a single IssueHunt username
+otechie: cosmosapien # Replace with a single Otechie username
+custom: ["https://cosmosapien.dev/donate", "https://buymeacoffee.com/cosmosapien"] # Replace with up to 4 custom sponsorship URLs 

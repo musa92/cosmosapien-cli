@@ -1,64 +1,140 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["cosmosapien"]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "cosmosapien-cli"
 version = "0.1.0"
-description = "A modular command-line tool for interacting with multiple LLM providers"
-authors = [
-    {name = "Cosmosapien CLI Team", email = "dev@cosmosapien.com"}
-]
+description = "A powerful command-line interface for interacting with multiple LLM providers with smart routing and job distribution"
 readme = "README.md"
-license = {file = "LICENSE"}
-requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Cosmosapien Team", email = "team@cosmosapien.dev"}
+]
+maintainers = [
+    {name = "Cosmosapien Team", email = "team@cosmosapien.dev"}
+]
+keywords = ["cli", "llm", "ai", "openai", "claude", "gemini", "perplexity", "llama"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
 ]
-keywords = ["cli", "llm", "ai", "openai", "gemini", "claude", "perplexity", "llama"]
+requires-python = ">=3.8"
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
-    "toml>=0.10.2",
+    "requests>=2.31.0",
     "openai>=1.0.0",
-    "google-generativeai>=0.3.0",
     "anthropic>=0.7.0",
-    "httpx>=0.24.0",
-    "pydantic>=2.0.0",
-    "click>=8.0.0",
+    "google-generativeai>=0.3.0",
+    "perplexity>=0.0.8",
     "keyring>=24.0.0",
-    "pathlib2>=2.3.7; python_version < '3.4'",
+    "toml>=0.10.0",
+    "pydantic>=2.0.0",
+    "asyncio-mqtt>=0.16.0",
+    "aiohttp>=3.8.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.0.0",
+    "prompt_toolkit>=3.0.0",
+    "pygments>=2.15.0",
+    "markdown>=3.4.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+    "httpx>=0.24.0",
+    "tenacity>=8.2.0",
+    "structlog>=23.0.0",
+    "psutil>=5.9.0",
+    "tiktoken>=0.5.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
     "black>=23.0.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+    "bump2version>=1.0.0",
+    "commitizen>=3.0.0",
+    "types-requests>=2.31.0",
+    "types-PyYAML>=6.0.0",
+    "types-psutil>=5.9.0",
+    "coverage>=7.0.0",
+    "tox>=4.0.0",
+    "twine>=4.0.0",
+    "build>=0.10.0",
+    "pip-tools>=7.0.0",
+    "pipdeptree>=2.10.0",
+    "pip-audit>=2.6.0",
 ]
+
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "coverage>=7.0.0",
+    "tox>=4.0.0",
+]
+
+lint = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+]
+
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=1.0.0",
+    "sphinx-autodoc-typehints>=1.23.0",
+    "sphinx-copybutton>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/cosmosapien/cli"
+Documentation = "https://cosmosapien.dev"
+Repository = "https://github.com/cosmosapien/cli"
+"Bug Tracker" = "https://github.com/cosmosapien/cli/issues"
+"Source Code" = "https://github.com/cosmosapien/cli"
+Changelog = "https://github.com/cosmosapien/cli/blob/main/CHANGELOG.md"
+"Contributing Guide" = "https://github.com/cosmosapien/cli/blob/main/CONTRIBUTING.md"
+"Code of Conduct" = "https://github.com/cosmosapien/cli/blob/main/CODE_OF_CONDUCT.md"
 
 [project.scripts]
 cosmo = "cosmosapien.cli.main:app"
 
-[project.urls]
-Homepage = "https://github.com/cosmosapien/cli"
-Repository = "https://github.com/cosmosapien/cli"
-Issues = "https://github.com/cosmosapien/cli/issues"
+[project.gui-scripts]
+cosmosapien-gui = "cosmosapien.gui.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cosmosapien*"]
+
+[tool.setuptools.package-data]
+cosmosapien = ["py.typed"]
 
 [tool.black]
 line-length = 88
@@ -82,6 +158,24 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
+known_first_party = ["cosmosapien"]
+known_third_party = ["typer", "rich", "requests", "openai", "anthropic"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    "venv",
+    ".tox",
+    ".mypy_cache",
+    ".pytest_cache",
+]
 
 [tool.mypy]
 python_version = "3.8"
@@ -97,10 +191,103 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "openai.*",
+    "anthropic.*",
+    "google.generativeai.*",
+    "perplexity.*",
+    "keyring.*",
+    "prompt_toolkit.*",
+    "pygments.*",
+    "markdown.*",
+    "jinja2.*",
+    "yaml.*",
+    "httpx.*",
+    "tenacity.*",
+    "structlog.*",
+    "psutil.*",
+    "tiktoken.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=cosmosapien",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=cosmosapien --cov-report=term-missing --cov-report=html" 
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["cosmosapien"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs"]
+skips = ["B101", "B601"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version_files = [
+    "pyproject.toml:version",
+    "cosmosapien/__init__.py:__version__",
+]
+
+[tool.bumpversion]
+current_version = "0.1.0"
+parse = "(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
+
+[tool.bumpversion.file:pyproject.toml]
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
+
+[tool.bumpversion.file:cosmosapien/__init__.py]
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+
+[tool.safety]
+output = "json" 
