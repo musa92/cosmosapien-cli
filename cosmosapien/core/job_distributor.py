@@ -64,6 +64,11 @@ class ModelStatus:
     success_rate: float = 1.0
     last_used: datetime = None
     error_count: int = 0
+    total_tokens: int = 0
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    avg_tokens_per_request: float = 0.0
+    total_requests: int = 0
 
 
 class JobDistributor:
@@ -114,6 +119,11 @@ class JobDistributor:
                             self.model_status[model_key].avg_response_time = data.get("avg_response_time", 0.0)
                             self.model_status[model_key].success_rate = data.get("success_rate", 1.0)
                             self.model_status[model_key].error_count = data.get("error_count", 0)
+                            self.model_status[model_key].total_tokens = data.get("total_tokens", 0)
+                            self.model_status[model_key].total_input_tokens = data.get("total_input_tokens", 0)
+                            self.model_status[model_key].total_output_tokens = data.get("total_output_tokens", 0)
+                            self.model_status[model_key].avg_tokens_per_request = data.get("avg_tokens_per_request", 0.0)
+                            self.model_status[model_key].total_requests = data.get("total_requests", 0)
             except (json.JSONDecodeError, IOError):
                 pass
     
@@ -129,7 +139,12 @@ class JobDistributor:
                 "avg_response_time": status.avg_response_time,
                 "success_rate": status.success_rate,
                 "error_count": status.error_count,
-                "total_jobs": status.current_load
+                "total_jobs": status.current_load,
+                "total_tokens": status.total_tokens,
+                "total_input_tokens": status.total_input_tokens,
+                "total_output_tokens": status.total_output_tokens,
+                "avg_tokens_per_request": status.avg_tokens_per_request,
+                "total_requests": status.total_requests
             }
         
         try:
@@ -332,6 +347,17 @@ class JobDistributor:
                 status.current_load = max(0, status.current_load - 1)
                 status.avg_response_time = (status.avg_response_time + execution_time) / 2
                 status.success_rate = min(1.0, status.success_rate + 0.01)
+                
+                # Update token statistics
+                tokens_used = response.usage.get("total_tokens", 0) if response.usage else 0
+                input_tokens = response.usage.get("prompt_tokens", 0) if response.usage else 0
+                output_tokens = response.usage.get("completion_tokens", 0) if response.usage else 0
+                
+                status.total_tokens += tokens_used
+                status.total_input_tokens += input_tokens
+                status.total_output_tokens += output_tokens
+                status.total_requests += 1
+                status.avg_tokens_per_request = status.total_tokens / status.total_requests
             
             return JobResult(
                 job_id=job_request.job_id,
@@ -391,13 +417,17 @@ class JobDistributor:
             "performance": {
                 "avg_response_time": 0.0,
                 "total_success_rate": 0.0,
-                "total_errors": 0
+                "total_errors": 0,
+                "total_tokens": 0,
+                "total_requests": 0
             }
         }
         
         total_response_time = 0.0
         total_success_rate = 0.0
         total_errors = 0
+        total_tokens = 0
+        total_requests = 0
         active_models = 0
         
         for model_key, status in self.model_status.items():
@@ -406,19 +436,28 @@ class JobDistributor:
                 total_response_time += status.avg_response_time
                 total_success_rate += status.success_rate
                 total_errors += status.error_count
+                total_tokens += status.total_tokens
+                total_requests += status.total_requests
                 
                 stats["model_status"][model_key] = {
                     "current_load": status.current_load,
                     "avg_response_time": status.avg_response_time,
                     "success_rate": status.success_rate,
                     "error_count": status.error_count,
-                    "last_used": status.last_used.isoformat() if status.last_used else None
+                    "last_used": status.last_used.isoformat() if status.last_used else None,
+                    "total_tokens": status.total_tokens,
+                    "total_input_tokens": status.total_input_tokens,
+                    "total_output_tokens": status.total_output_tokens,
+                    "avg_tokens_per_request": status.avg_tokens_per_request,
+                    "total_requests": status.total_requests
                 }
         
         if active_models > 0:
             stats["performance"]["avg_response_time"] = total_response_time / active_models
             stats["performance"]["total_success_rate"] = total_success_rate / active_models
             stats["performance"]["total_errors"] = total_errors
+            stats["performance"]["total_tokens"] = total_tokens
+            stats["performance"]["total_requests"] = total_requests
         
         return stats
     

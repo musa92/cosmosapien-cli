@@ -26,6 +26,7 @@ Cosmosapien CLI provides a single interface to interact with various LLM provide
 - **Usage Tracking**: Monitor API usage and costs across providers
 - **Model Registration**: Easy model addition through interactive wizards and templates
 - **Performance Monitoring**: Track model performance, response times, and success rates
+- **Token Analytics**: Detailed token usage statistics and distribution analysis
 - **Load Balancing**: Distribute workloads across available models efficiently
 - **Fallback Mechanisms**: Automatic failover to alternative models on errors
 
@@ -189,6 +190,8 @@ cosmo squeeze <prompt> --explain    # Show free tier decision
 # Monitoring
 cosmo usage                         # Show usage statistics
 cosmo job-stats                     # Show distribution statistics
+cosmo token-stats                   # Show detailed token usage
+cosmo model-performance             # Show comprehensive performance stats
 cosmo reset-usage                   # Reset usage counters
 cosmo reset-job-stats               # Reset job statistics
 ```

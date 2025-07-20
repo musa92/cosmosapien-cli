@@ -1993,7 +1993,9 @@ def job_stats():
         console.print(f"Completed Jobs: {stats['completed_jobs']}")
         console.print(f"Average Response Time: {stats['performance']['avg_response_time']:.2f}s")
         console.print(f"Total Success Rate: {stats['performance']['total_success_rate']:.2%}")
-        console.print(f"Total Errors: {stats['performance']['total_errors']}\n")
+        console.print(f"Total Errors: {stats['performance']['total_errors']}")
+        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print(f"Total Requests: {stats['performance']['total_requests']:,}\n")
         
         # Model status
         console.print(f"[bold]Model Status[/bold]")
@@ -2003,6 +2005,8 @@ def job_stats():
             table.add_column("Load", justify="center")
             table.add_column("Success Rate", justify="center")
             table.add_column("Avg Response", justify="center")
+            table.add_column("Total Tokens", justify="right")
+            table.add_column("Requests", justify="center")
             table.add_column("Errors", justify="center")
             table.add_column("Last Used", justify="center")
             
@@ -2012,6 +2016,8 @@ def job_stats():
                     str(status['current_load']),
                     f"{status['success_rate']:.2%}",
                     f"{status['avg_response_time']:.2f}s",
+                    f"{status['total_tokens']:,}",
+                    str(status['total_requests']),
                     str(status['error_count']),
                     status['last_used'][:19] if status['last_used'] else "Never"
                 )
@@ -2040,6 +2046,138 @@ def reset_job_stats():
         
     except Exception as e:
         console.print(f"[red]Error resetting job statistics: {str(e)}[/red]")
+
+
+@app.command()
+def token_stats():
+    """Show detailed token usage statistics across models."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Get statistics
+        stats = job_distributor.get_distribution_stats()
+        
+        console.print("[bold blue]Token Usage Statistics[/bold blue]\n")
+        
+        # Overall token stats
+        console.print(f"[bold]Overall Token Usage[/bold]")
+        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print(f"Total Requests: {stats['performance']['total_requests']:,}")
+        console.print(f"Average Tokens per Request: {stats['performance']['total_tokens'] / max(stats['performance']['total_requests'], 1):.1f}\n")
+        
+        # Model token breakdown
+        console.print(f"[bold]Token Usage by Model[/bold]")
+        if stats['model_status']:
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Model", style="cyan")
+            table.add_column("Total Tokens", justify="right")
+            table.add_column("Input Tokens", justify="right")
+            table.add_column("Output Tokens", justify="right")
+            table.add_column("Avg/Request", justify="right")
+            table.add_column("Requests", justify="center")
+            
+            # Sort by total tokens (descending)
+            sorted_models = sorted(
+                stats['model_status'].items(),
+                key=lambda x: x[1]['total_tokens'],
+                reverse=True
+            )
+            
+            for model_key, status in sorted_models:
+                if status['total_tokens'] > 0:  # Only show models with usage
+                    table.add_row(
+                        model_key,
+                        f"{status['total_tokens']:,}",
+                        f"{status['total_input_tokens']:,}",
+                        f"{status['total_output_tokens']:,}",
+                        f"{status['avg_tokens_per_request']:.1f}",
+                        str(status['total_requests'])
+                    )
+            
+            console.print(table)
+            
+            # Token distribution chart
+            console.print(f"\n[bold]Token Distribution[/bold]")
+            total_tokens = stats['performance']['total_tokens']
+            if total_tokens > 0:
+                for model_key, status in sorted_models[:5]:  # Top 5 models
+                    if status['total_tokens'] > 0:
+                        percentage = (status['total_tokens'] / total_tokens) * 100
+                        bar_length = int(percentage / 2)  # Scale for display
+                        bar = "█" * bar_length
+                        console.print(f"  {model_key:<30} {bar} {percentage:.1f}% ({status['total_tokens']:,} tokens)")
+        else:
+            console.print("No token usage data available.")
+        
+    except Exception as e:
+        console.print(f"[red]Error getting token statistics: {str(e)}[/red]")
+
+
+@app.command()
+def model_performance():
+    """Show comprehensive model performance statistics."""
+    try:
+        from cosmosapien.core.job_distributor import JobDistributor
+        
+        # Initialize job distributor
+        job_distributor = JobDistributor(config_manager, model_library, local_manager)
+        
+        # Get statistics
+        stats = job_distributor.get_distribution_stats()
+        
+        console.print("[bold blue]Model Performance Statistics[/bold blue]\n")
+        
+        # Overall performance
+        console.print(f"[bold]Overall Performance[/bold]")
+        console.print(f"Active Jobs: {stats['active_jobs']}")
+        console.print(f"Completed Jobs: {stats['completed_jobs']}")
+        console.print(f"Average Response Time: {stats['performance']['avg_response_time']:.2f}s")
+        console.print(f"Total Success Rate: {stats['performance']['total_success_rate']:.2%}")
+        console.print(f"Total Errors: {stats['performance']['total_errors']}")
+        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print(f"Total Requests: {stats['performance']['total_requests']:,}\n")
+        
+        # Detailed model performance
+        console.print(f"[bold]Model Performance Details[/bold]")
+        if stats['model_status']:
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Model", style="cyan")
+            table.add_column("Load", justify="center")
+            table.add_column("Success Rate", justify="center")
+            table.add_column("Avg Response", justify="center")
+            table.add_column("Total Tokens", justify="right")
+            table.add_column("Avg Tokens", justify="right")
+            table.add_column("Requests", justify="center")
+            table.add_column("Errors", justify="center")
+            
+            # Sort by total tokens (descending)
+            sorted_models = sorted(
+                stats['model_status'].items(),
+                key=lambda x: x[1]['total_tokens'],
+                reverse=True
+            )
+            
+            for model_key, status in sorted_models:
+                table.add_row(
+                    model_key,
+                    str(status['current_load']),
+                    f"{status['success_rate']:.2%}",
+                    f"{status['avg_response_time']:.2f}s",
+                    f"{status['total_tokens']:,}",
+                    f"{status['avg_tokens_per_request']:.1f}",
+                    str(status['total_requests']),
+                    str(status['error_count'])
+                )
+            
+            console.print(table)
+        else:
+            console.print("No model performance data available.")
+        
+    except Exception as e:
+        console.print(f"[red]Error getting performance statistics: {str(e)}[/red]")
 
 
 @app.command()
