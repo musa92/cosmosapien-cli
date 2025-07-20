@@ -1,7 +1,6 @@
 """Memory manager for conversation history."""
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -30,13 +29,13 @@ class MemoryManager:
             "metadata": metadata or {},
         }
 
-        file_path = self.memory_path / f"{session_id}.json"
+        file_path = self.memory_path / "{session_id}.json"
         with open(file_path, "w") as f:
             json.dump(conversation_data, f, indent=2)
 
     def load_conversation(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Load a conversation from memory."""
-        file_path = self.memory_path / f"{session_id}.json"
+        file_path = self.memory_path / "{session_id}.json"
 
         if not file_path.exists():
             return None
@@ -77,7 +76,7 @@ class MemoryManager:
 
     def delete_session(self, session_id: str) -> bool:
         """Delete a conversation session."""
-        file_path = self.memory_path / f"{session_id}.json"
+        file_path = self.memory_path / "{session_id}.json"
 
         if file_path.exists():
             file_path.unlink()

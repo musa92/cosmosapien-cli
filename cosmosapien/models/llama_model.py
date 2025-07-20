@@ -1,9 +1,7 @@
 """LLaMA model implementation using Ollama."""
 
 import asyncio
-import json
-import subprocess
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from ..core.models import BaseModel, ChatMessage, ModelResponse
 
@@ -35,7 +33,7 @@ class LLaMA(BaseModel):
             stdout, stderr = await process.communicate()
 
             if process.returncode != 0:
-                raise Exception(f"Ollama command failed: {stderr.decode()}")
+                raise Exception("Ollama command failed: {stderr.decode()}")
 
             return stdout.decode().strip()
         except FileNotFoundError:
@@ -50,7 +48,7 @@ class LLaMA(BaseModel):
             await self._run_ollama_command(["list"])
         except Exception:
             # Try to pull the model
-            print(f"Pulling model {self.model}...")
+            print("Pulling model {self.model}...")
             await self._run_ollama_command(["pull", self.model])
 
     async def generate(self, prompt: str, **kwargs) -> ModelResponse:
@@ -59,12 +57,7 @@ class LLaMA(BaseModel):
             await self._ensure_model_available()
 
             # Prepare the request
-            request_data = {
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False,
-                **kwargs,
-            }
+            # Remove all assignments to 'request_data' that are not used
 
             # Run the generate command
             result = await self._run_ollama_command(["run", self.model, prompt])
@@ -79,8 +72,8 @@ class LLaMA(BaseModel):
                     "model": self.model,
                 },
             )
-        except Exception as e:
-            raise Exception(f"LLaMA/Ollama error: {str(e)}")
+        except Exception:
+            raise Exception("LLaMA/Ollama error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response using Ollama."""
@@ -91,11 +84,11 @@ class LLaMA(BaseModel):
             prompt = ""
             for msg in messages:
                 if msg.role == "system":
-                    prompt += f"System: {msg.content}\n\n"
+                    prompt += "System: {msg.content}\n\n"
                 elif msg.role == "user":
-                    prompt += f"User: {msg.content}\n\n"
+                    prompt += "User: {msg.content}\n\n"
                 elif msg.role == "assistant":
-                    prompt += f"Assistant: {msg.content}\n\n"
+                    prompt += "Assistant: {msg.content}\n\n"
 
             prompt += "Assistant: "
 
@@ -112,8 +105,8 @@ class LLaMA(BaseModel):
                     "model": self.model,
                 },
             )
-        except Exception as e:
-            raise Exception(f"LLaMA/Ollama error: {str(e)}")
+        except Exception:
+            raise Exception("LLaMA/Ollama error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available LLaMA models (common Ollama models)."""

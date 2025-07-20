@@ -1,7 +1,6 @@
 """OpenAI model implementation."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from openai import AsyncOpenAI
 
@@ -49,8 +48,8 @@ class OpenAI(BaseModel):
                     "index": response.choices[0].index,
                 },
             )
-        except Exception as e:
-            raise Exception(f"OpenAI API error: {str(e)}")
+        except Exception:
+            raise Exception("OpenAI API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from OpenAI."""
@@ -88,8 +87,8 @@ class OpenAI(BaseModel):
                     "index": response.choices[0].index,
                 },
             )
-        except Exception as e:
-            raise Exception(f"OpenAI API error: {str(e)}")
+        except Exception:
+            raise Exception("OpenAI API error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available OpenAI models."""

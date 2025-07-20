@@ -1,8 +1,7 @@
 """Configuration management for Cosmosapien CLI."""
 
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import toml
 from pydantic import BaseModel, Field
@@ -61,8 +60,8 @@ class ConfigManager:
             with open(self.config_path, "r") as f:
                 data = toml.load(f)
             return Config(**data)
-        except Exception as e:
-            print(f"Warning: Could not load config from {self.config_path}: {e}")
+        except Exception:
+            print("Warning: Could not load config from {self.config_path}: {e}")
             return Config()
 
     def save(self, config: Config) -> None:

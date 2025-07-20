@@ -1,28 +1,22 @@
 """Clean cosmic-themed UI for Cosmosapien CLI."""
 
-import asyncio
 import random
-from typing import List, Optional
+from typing import Optional
 
-from rich.align import Align
 from rich.box import ROUNDED
-from rich.columns import Columns
 from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt
 from rich.table import Table
-from rich.text import Text
 
 from ..auth.manager import AuthManager
-from ..core.agent_system import AgentRole, AgentSystem
+from ..core.agent_system import AgentSystem
 from ..core.config import ConfigManager
 from ..core.local_manager import LocalModelManager
 from ..core.models import ChatMessage
 from ..core.router import Router
+from ..core.provider_info import get_provider_display_name
 
 
 class CosmicUI:
@@ -37,7 +31,7 @@ class CosmicUI:
         self.agent_system = AgentSystem(self.router, self.local_manager)
 
         # Clean cosmic elements
-        self.cosmic_symbols = ["*", "•", "○", "●", "◇", "◆", "□", "■"]
+        self.cosmic_symbols = ["I", "B", "L", "A", "X", "Y", "Z", "Q"]
 
         # Default open-source models (no API key required)
         self.default_models = {
@@ -66,7 +60,7 @@ class CosmicUI:
             "/help for more information",
             "Using open-source models by default",
         ]
-        return "\n".join([f"• {tip}" for tip in tips])
+        return "\n".join([f"- {tip}" for tip in tips])
 
     def get_random_cosmic_symbol(self) -> str:
         """Get a random cosmic symbol."""
@@ -104,12 +98,12 @@ class CosmicUI:
     def create_status_bar(self) -> str:
         """Create a clean status bar."""
         providers = self.auth_manager.list_providers()
-        connected_count = sum(1 for p in providers if p["logged_in"])
+        sum(1 for p in providers if p["logged_in"])
 
         status_elements = [
-            f"Connected: {connected_count}/{len(providers)}",
-            f"Mode: Interactive",
-            f"Model: Open Source (llama2)",
+            "Connected: {connected_count}/{len(providers)}",
+            "Mode: Interactive",
+            "Model: Open Source (llama2)",
         ]
 
         return " | ".join(status_elements)
@@ -117,25 +111,23 @@ class CosmicUI:
     def show_clean_response(self, response: str, provider: str, model: str):
         """Show a clean response."""
         symbol = self.get_random_cosmic_symbol()
-
+        provider_display = get_provider_display_name(provider)
         response_panel = self.create_clean_panel(
             f"{symbol} {response}",
-            title=f"{provider.title()} ({model})",
+            title=f"{provider_display} ({model})",
             color="magenta",
         )
-
         self.console.print(response_panel)
 
     def show_clean_thinking(self, message: str = "Exploring the cosmic knowledge..."):
         """Show a clean thinking animation."""
         with Progress(
             SpinnerColumn(style="bright_blue"),
-            TextColumn(f"[bright_blue]{message}"),
+            TextColumn("[bright_blue]{message}"),
             console=self.console,
             transient=True,
         ) as progress:
-            task = progress.add_task("", total=None)
-            # This will be handled by the calling function
+            pass
 
     def get_default_open_source_provider(self) -> tuple:
         """Get the best available open-source provider and model."""
@@ -166,18 +158,18 @@ class CosmicUI:
             provider, model = self.get_default_open_source_provider()
 
         messages = []
-        symbol = self.get_random_cosmic_symbol()
+        self.get_random_cosmic_symbol()
 
         self.console.print(
-            f"{symbol} Welcome to the cosmic chat. Using {provider} ({model}). Type 'quit' to exit.\n"
+            "{symbol} Welcome to the cosmic chat. Using {provider} ({model}). Type 'quit' to exit.\n"
         )
 
         while True:
             # Get user input with clean prompt
-            user_input = Prompt.ask(f"[bright_green]>[/bright_green]")
+            user_input = Prompt.ask("[bright_green]>[/bright_green]")
 
             if user_input.lower() in ["quit", "exit", "q", "bye"]:
-                self.console.print(f"{symbol} [yellow]Goodbye![/yellow]")
+                self.console.print("{symbol} [yellow]Goodbye![/yellow]")
                 break
 
             if not user_input.strip():
@@ -194,7 +186,7 @@ class CosmicUI:
                     console=self.console,
                     transient=True,
                 ) as progress:
-                    task = progress.add_task("", total=None)
+                    pass
 
                     response = await self.router.chat(
                         messages=messages,
@@ -210,10 +202,10 @@ class CosmicUI:
                     response.content, response.provider, response.model
                 )
 
-            except Exception as e:
-                self.console.print(f"[red]Error: {str(e)}[/red]")
+            except Exception:
+                self.console.print("[red]Error: {str(e)}[/red]")
                 self.console.print(
-                    f"[yellow]Trying to use a different open-source model...[/yellow]"
+                    "[yellow]Trying to use a different open-source model...[/yellow]"
                 )
 
                 # Try to switch to a different open-source model
@@ -224,7 +216,7 @@ class CosmicUI:
                 else:
                     provider, model = "llama", "llama2"
 
-                self.console.print(f"[cyan]Switched to {provider} ({model})[/cyan]")
+                self.console.print("[cyan]Switched to {provider} ({model})[/cyan]")
 
                 if messages and messages[-1].role == "user":
                     messages.pop()
@@ -247,10 +239,7 @@ class CosmicUI:
             clean_name = provider_name.title()
 
             # Determine tier with clean symbols
-            tier_symbols = {"individual": "•", "bundled": "*", "local": "○"}
-
-            # This would need to be integrated with provider_info
-            tier_symbol = "•"  # Default for now
+            tier_symbol = "I"  # Default for now
 
             table.add_row(
                 clean_name,
@@ -266,23 +255,23 @@ class CosmicUI:
         help_content = """
 **Commands:**
 
-• `cosmo ask <question>` - Ask AI models
-• `cosmo chat` - Start an interactive conversation  
-• `cosmo status` - Check your connections
-• `cosmo login <provider>` - Connect to an AI provider
-• `cosmo providers` - Explore available models
-• `cosmo debate <topic>` - Watch AI models debate
+- `cosmo ask <question>` - Ask AI models
+- `cosmo chat` - Start an interactive conversation
+- `cosmo status` - Check your connections
+- `cosmo login <provider>` - Connect to an AI provider
+- `cosmo providers` - Explore available models
+- `cosmo debate <topic>` - Watch AI models debate
 
 **Tips:**
-• Be specific in your queries
-• Different AI models have different knowledge
-• Some models require API keys
-• Local models don't need credentials
+- Be specific in your queries
+- Different AI models have different knowledge
+- Some models require API keys
+- Local models don't need credentials
 
 **Provider Types:**
-• Individual (•) - Pay per interaction
-• Bundled (*) - Multiple models with subscription  
-• Local (○) - Models that run locally
+I Individual (I) - Pay per interaction
+B Bundled (B) - Multiple models with subscription
+L Local (L) - Models that run locally
         """
 
         help_panel = self.create_clean_panel(
