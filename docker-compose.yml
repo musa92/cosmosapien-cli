@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  cosmosapien:
+    build: .
+    container_name: cosmosapien-cli
+    volumes:
+      - ~/.cosmo:/home/cosmosapien/.cosmo
+      - ~/.cosmosrc:/home/cosmosapien/.cosmosrc
+    environment:
+      - COSMOSAPIEN_CONFIG_PATH=/home/cosmosapien/.cosmosrc
+    command: ["--help"]
+    profiles:
+      - cli
+
+  cosmosapien-dev:
+    build: .
+    container_name: cosmosapien-cli-dev
+    volumes:
+      - .:/app
+      - ~/.cosmo:/home/cosmosapien/.cosmo
+      - ~/.cosmosrc:/home/cosmosapien/.cosmosrc
+    environment:
+      - COSMOSAPIEN_CONFIG_PATH=/home/cosmosapien/.cosmosrc
+      - PYTHONPATH=/app
+    working_dir: /app
+    command: ["bash", "-c", "pip install -e . && cosmo --help"]
+    profiles:
+      - dev
+
+  cosmosapien-test:
+    build: .
+    container_name: cosmosapien-cli-test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    working_dir: /app
+    command: ["bash", "-c", "pip install -e '.[dev]' && pytest"]
+    profiles:
+      - test
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    profiles:
+      - local-models
+
+volumes:
+  ollama_data:
+    driver: local 

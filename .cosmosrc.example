@@ -34,4 +34,14 @@ models = { sonar_small = "llama-3.1-sonar-small-128k-online", sonar_medium = "ll
 
 [providers.llama]
 # No API key needed for local Ollama
-models = { llama2 = "llama2", codellama = "codellama", mistral = "mistral" } 
+models = { llama2 = "llama2", codellama = "codellama", mistral = "mistral" }
+
+[providers.grok]
+# API key will be stored securely via keyring
+# api_key = "your-grok-api-key"
+models = { grok_beta = "grok-beta", grok_2 = "grok-2", grok_2_vision = "grok-2-vision" }
+
+[providers.huggingface]
+# API key will be stored securely via keyring
+# api_key = "your-huggingface-api-key"
+models = { llama2_7b = "meta-llama/Llama-2-7b-chat-hf", llama2_13b = "meta-llama/Llama-2-13b-chat-hf", gpt2 = "gpt2", falcon_7b = "tiiuae/falcon-7b" } 

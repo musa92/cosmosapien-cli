@@ -1,9 +1,11 @@
 """Model implementations for different LLM providers."""
 
-from .openai_model import OpenAI
-from .gemini_model import Gemini
 from .claude_model import Claude
-from .perplexity_model import Perplexity
+from .gemini_model import Gemini
+from .grok_model import Grok
+from .huggingface_model import HuggingFace
 from .llama_model import LLaMA
+from .openai_model import OpenAI
+from .perplexity_model import Perplexity
 
-__all__ = ["OpenAI", "Gemini", "Claude", "Perplexity", "LLaMA"] 
+__all__ = ["OpenAI", "Gemini", "Claude", "Perplexity", "LLaMA", "Grok", "HuggingFace"]
