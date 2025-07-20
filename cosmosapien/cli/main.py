@@ -1,7 +1,6 @@
 """Main CLI application for Cosmosapien."""
 
 import asyncio
-import sys
 from typing import List, Optional
 
 import typer
@@ -11,7 +10,6 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
-from rich.text import Text
 
 from ..auth.manager import AuthManager
 from ..core.agent_system import AgentRole, AgentSystem
@@ -59,12 +57,12 @@ model_registry.register("huggingface", HuggingFace)
 
 def print_error(message: str):
     """Print an error message."""
-    console.print(f"[red]Error: {message}[/red]")
+    console.print("[red]Error: {message}[/red]")
 
 
 def print_success(message: str):
     """Print a success message."""
-    console.print(f"[green]✓ {message}[/green]")
+    console.print("[green]✓ {message}[/green]")
 
 
 def get_default_open_source_provider() -> tuple:
@@ -116,7 +114,7 @@ def setup():
         for runner, is_available in status.items():
             if not is_available:
                 console.print(
-                    f"\n[bold yellow]Installation help for {runner}:[/bold yellow]"
+                    "\n[bold yellow]Installation help for {runner}:[/bold yellow]"
                 )
                 help_text = local_manager.get_installation_help(runner)
                 console.print(Panel(help_text, border_style="yellow"))
@@ -125,9 +123,9 @@ def setup():
         console.print("\n[bold blue]Recommended Models:[/bold blue]")
         recommended = local_manager.get_recommended_models()
         for model in recommended[:5]:  # Show top 5
-            console.print(f"• [cyan]{model['name']}[/cyan] - {model['description']}")
+            console.print("• [cyan]{model['name']}[/cyan] - {model['description']}")
             console.print(
-                f"  Size: {model['size']} | Performance: {model['performance']}"
+                "  Size: {model['size']} | Performance: {model['performance']}"
             )
 
         console.print(
@@ -207,12 +205,12 @@ def agents():
             console.print()
 
         # Show total count
-        total_agents = len(agents)
-        local_count = len(local_agents)
+        len(agents)
+        len(local_agents)
         cloud_count = len(cloud_agents)
 
         console.print(
-            f"[bold]Total Agents: {total_agents}[/bold] ([green]Local: {local_count}[/green], [blue]Cloud: {cloud_count}[/blue])"
+            "[bold]Total Agents: {total_agents}[/bold] ([green]Local: {local_count}[/green], [blue]Cloud: {cloud_count}[/blue])"
         )
 
         # Show login status for cloud providers
@@ -278,21 +276,21 @@ def collaborate(
                 try:
                     agent_roles.append(AgentRole(role_str.lower()))
                 except ValueError:
-                    console.print(f"[yellow]Unknown role: {role_str}[/yellow]")
+                    console.print("[yellow]Unknown role: {role_str}[/yellow]")
 
         try:
             result = await agent_system.collaborative_chat(message, agent_roles)
 
-            console.print(f"\n[bold blue]Collaborative Response[/bold blue]")
-            console.print(f"[dim]Message: {message}[/dim]\n")
+            console.print("\n[bold blue]Collaborative Response[/bold blue]")
+            console.print("[dim]Message: {message}[/dim]\n")
 
             # Show individual agent responses
             for agent_name, response in result["agents"].items():
                 if response.get("error"):
                     console.print(
                         Panel(
-                            f"[red]Error: {response['content']}[/red]",
-                            title=f"❌ {agent_name} ({response['role']})",
+                            "[red]Error: {response['content']}[/red]",
+                            title="❌ {agent_name} ({response['role']})",
                             border_style="red",
                         )
                     )
@@ -316,10 +314,10 @@ def collaborate(
             if result["recommendations"]:
                 console.print("\n[bold]Recommendations:[/bold]")
                 for rec in result["recommendations"]:
-                    console.print(f"• {rec}")
+                    console.print("• {rec}")
 
-        except Exception as e:
-            console.print(f"[red]Error: {str(e)}[/red]")
+        except Exception:
+            console.print("[red]Error: {str(e)}[/red]")
 
     asyncio.run(_collaborate())
 
@@ -346,20 +344,20 @@ def solve(
 
                 result = await agent_system.solve_complex_problem(problem)
 
-            console.print(f"\n[bold blue]Problem Solution[/bold blue]")
-            console.print(f"[dim]Problem: {problem}[/dim]\n")
+            console.print("\n[bold blue]Problem Solution[/bold blue]")
+            console.print("[dim]Problem: {problem}[/dim]\n")
 
             # Show component solutions
             for component, solutions in result["solutions"].items():
-                console.print(f"[bold]{component.title()}:[/bold]")
+                console.print("[bold]{component.title()}:[/bold]")
                 for solution in solutions:
                     if solution.get("error"):
                         console.print(
-                            f"  ❌ {solution['agent']}: {solution['solution']}"
+                            "  ❌ {solution['agent']}: {solution['solution']}"
                         )
                     else:
                         console.print(
-                            f"  ✅ {solution['agent']}: {solution['solution'][:100]}..."
+                            "  ✅ {solution['agent']}: {solution['solution'][:100]}..."
                         )
                 console.print()
 
@@ -373,8 +371,8 @@ def solve(
                     )
                 )
 
-        except Exception as e:
-            console.print(f"[red]Error: {str(e)}[/red]")
+        except Exception:
+            console.print("[red]Error: {str(e)}[/red]")
 
     asyncio.run(_solve())
 
@@ -417,7 +415,7 @@ def hybrid(
             ]
             selected_agents.extend(selected_local)
             console.print(
-                f"[green]Selected {len(selected_local)} local agent(s): {', '.join([a.name for a in selected_local])}[/green]"
+                "[green]Selected {len(selected_local)} local agent(s): {', '.join([a.name for a in selected_local])}[/green]"
             )
 
         # Add cloud agents
@@ -427,7 +425,7 @@ def hybrid(
             ]
             selected_agents.extend(selected_cloud)
             console.print(
-                f"[blue]Selected {len(selected_cloud)} cloud agent(s): {', '.join([a.name for a in selected_cloud])}[/blue]"
+                "[blue]Selected {len(selected_cloud)} cloud agent(s): {', '.join([a.name for a in selected_cloud])}[/blue]"
             )
 
         if not selected_agents:
@@ -437,10 +435,10 @@ def hybrid(
             return
 
         try:
-            console.print(f"\n[bold blue]🤖 Hybrid Agent Response[/bold blue]")
-            console.print(f"[dim]Message: {message}[/dim]")
+            console.print("\n[bold blue]🤖 Hybrid Agent Response[/bold blue]")
+            console.print("[dim]Message: {message}[/dim]")
             console.print(
-                f"[dim]Agents: {len(selected_agents)} total ({len([a for a in selected_agents if a.provider == 'llama'])} local, {len([a for a in selected_agents if a.provider != 'llama'])} cloud)[/dim]\n"
+                "[dim]Agents: {len(selected_agents)} total ({len([a for a in selected_agents if a.provider == 'llama'])} local, {len([a for a in selected_agents if a.provider != 'llama'])} cloud)[/dim]\n"
             )
 
             # Get responses from each agent
@@ -462,9 +460,9 @@ def hybrid(
                         "type": "local" if agent.provider == "llama" else "cloud",
                     }
 
-                except Exception as e:
+                except Exception:
                     responses[agent.name] = {
-                        "content": f"Error: {str(e)}",
+                        "content": "Error: {str(e)}",
                         "role": agent.role.value,
                         "provider": agent.provider,
                         "model": agent.model,
@@ -480,8 +478,8 @@ def hybrid(
                         if response.get("error"):
                             console.print(
                                 Panel(
-                                    f"[red]Error: {response['content']}[/red]",
-                                    title=f"❌ {agent_name} ({response['role']})",
+                                    "[red]Error: {response['content']}[/red]",
+                                    title="❌ {agent_name} ({response['role']})",
                                     border_style="red",
                                 )
                             )
@@ -502,8 +500,8 @@ def hybrid(
                         if response.get("error"):
                             console.print(
                                 Panel(
-                                    f"[red]Error: {response['content']}[/red]",
-                                    title=f"❌ {agent_name} ({response['role']})",
+                                    "[red]Error: {response['content']}[/red]",
+                                    title="❌ {agent_name} ({response['role']})",
                                     border_style="red",
                                 )
                             )
@@ -523,15 +521,15 @@ def hybrid(
                 for agent_name, response in responses.items():
                     if not response.get("error"):
                         console.print(
-                            f"• [cyan]{agent_name}[/cyan] ({response['type']}): {response['content'][:100]}..."
+                            "• [cyan]{agent_name}[/cyan] ({response['type']}): {response['content'][:100]}..."
                         )
                     else:
                         console.print(
-                            f"• [red]{agent_name}[/red] ({response['type']}): Error"
+                            "• [red]{agent_name}[/red] ({response['type']}): Error"
                         )
 
-        except Exception as e:
-            console.print(f"[red]Error: {str(e)}[/red]")
+        except Exception:
+            console.print("[red]Error: {str(e)}[/red]")
 
     asyncio.run(_hybrid())
 
@@ -539,15 +537,14 @@ def hybrid(
 @app.command()
 def version():
     """Show version information."""
-    from .. import __version__
 
-    console.print(f"[bold blue]Cosmosapien CLI v{__version__}[/bold blue]")
+    console.print("[bold blue]Cosmosapien CLI v{__version__}[/bold blue]")
 
 
 @app.command()
 def login(
     provider: str = typer.Argument(
-        ..., help=f"Provider name ({', '.join(get_all_providers())})"
+        ..., help="Provider name ({', '.join(get_all_providers())})"
     ),
     api_key: Optional[str] = typer.Option(
         None, "--key", "-k", help="API key (will prompt if not provided)"
@@ -555,14 +552,14 @@ def login(
 ):
     """Login to a provider by storing API key securely."""
     if provider not in get_all_providers():
-        print_error(f"Unknown provider: {provider}")
-        print_error(f"Available providers: {', '.join(get_all_providers())}")
+        print_error("Unknown provider: {provider}")
+        print_error("Available providers: {', '.join(get_all_providers())}")
         raise typer.Exit(1)
 
     if auth_manager.login(provider, api_key):
-        print_success(f"Logged in to {provider}")
+        print_success("Logged in to {provider}")
     else:
-        print_error(f"Failed to login to {provider}")
+        print_error("Failed to login to {provider}")
         raise typer.Exit(1)
 
 
@@ -570,9 +567,9 @@ def login(
 def logout(provider: str = typer.Argument(..., help="Provider name to logout from")):
     """Logout from a provider by removing API key."""
     if auth_manager.logout(provider):
-        print_success(f"Logged out from {provider}")
+        print_success("Logged out from {provider}")
     else:
-        print_error(f"Failed to logout from {provider}")
+        print_error("Failed to logout from {provider}")
         raise typer.Exit(1)
 
 
@@ -593,22 +590,17 @@ def status():
         provider_info = get_provider_info(provider_name)
 
         # Get tier information
-        tier_text = "Individual"
-        tier_style = "blue"
         if provider_info:
             if provider_info.tier_type == "bundled":
-                tier_text = "Bundled ⭐"
-                tier_style = "yellow"
+                pass
             elif provider_info.tier_type == "local":
-                tier_text = "Local 🏠"
-                tier_style = "green"
+                pass
             elif provider_info.tier_type == "individual":
-                tier_text = "Individual 🔑"
-                tier_style = "blue"
+                pass
 
         table.add_row(
             get_provider_display_name(provider_name),
-            f"[{tier_style}]{tier_text}[/{tier_style}]",
+            "[{tier_style}]{tier_text}[/{tier_style}]",
             status_icon,
             "Yes" if provider["logged_in"] else "No",
         )
@@ -635,13 +627,13 @@ def providers():
         # Create provider card
         console.print(
             Panel(
-                f"[bold]{info.display_name}[/bold]\n"
-                f"[dim]{info.description}[/dim]\n\n"
-                f"🌐 [link={info.website}]Website[/link]\n"
-                f"📚 [link={info.api_docs}]API Docs[/link]\n"
-                f"💳 Subscription: {'Required' if info.subscription_required else 'Not Required'}\n"
-                f"🆓 Free Tier: {'Available' if info.free_tier_available else 'Not Available'}\n"
-                f"📦 Tier Type: {info.tier_type.title()} {info.tier_icon}",
+                "[bold]{info.display_name}[/bold]\n"
+                "[dim]{info.description}[/dim]\n\n"
+                "🌐 [link={info.website}]Website[/link]\n"
+                "📚 [link={info.api_docs}]API Docs[/link]\n"
+                "💳 Subscription: {'Required' if info.subscription_required else 'Not Required'}\n"
+                "🆓 Free Tier: {'Available' if info.free_tier_available else 'Not Available'}\n"
+                "📦 Tier Type: {info.tier_type.title()} {info.tier_icon}",
                 title=f"{info.tier_icon} {info.display_name}",
                 border_style=(
                     "blue"
@@ -698,37 +690,37 @@ def ask(
                 decision = smart_router.smart_route(prompt, explain_only=explain_route)
 
                 # Show routing decision
-                console.print(f"\n[bold blue]🧠 Smart Routing Decision[/bold blue]")
+                console.print("\n[bold blue]🧠 Smart Routing Decision[/bold blue]")
                 console.print(
-                    f"[dim]Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}[/dim]"
+                    "[dim]Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}[/dim]"
                 )
                 console.print(
-                    f"[bold]Complexity:[/bold] {decision.complexity.value.title()}"
+                    "[bold]Complexity:[/bold] {decision.complexity.value.title()}"
                 )
                 console.print(
-                    f"[bold]Selected:[/bold] {decision.selected_provider}/{decision.selected_model}"
+                    "[bold]Selected:[/bold] {decision.selected_provider}/{decision.selected_model}"
                 )
-                console.print(f"[bold]Reasoning:[/bold] {decision.reasoning}")
+                console.print("[bold]Reasoning:[/bold] {decision.reasoning}")
                 console.print(
-                    f"[bold]Estimated Cost:[/bold] ${decision.estimated_cost:.4f}"
+                    "[bold]Estimated Cost:[/bold] ${decision.estimated_cost:.4f}"
                 )
 
                 if decision.alternatives:
-                    console.print(f"\n[bold]Alternatives:[/bold]")
+                    console.print("\n[bold]Alternatives:[/bold]")
                     for alt_provider, alt_model, alt_reason in decision.alternatives[
                         :3
                     ]:
-                        console.print(f"• {alt_provider}/{alt_model} - {alt_reason}")
+                        console.print("• {alt_provider}/{alt_model} - {alt_reason}")
 
                 if explain_route:
                     console.print(
-                        f"\n[green]Routing explanation complete. Use --smart-route to execute.[/green]"
+                        "\n[green]Routing explanation complete. Use --smart-route to execute.[/green]"
                     )
                     return
 
                 if decision.selected_provider == "none":
                     console.print(
-                        f"[red]No suitable provider found. Please login to providers or check local models.[/red]"
+                        "[red]No suitable provider found. Please login to providers or check local models.[/red]"
                     )
                     return
 
@@ -762,7 +754,7 @@ def ask(
             console.print(
                 Panel(
                     Markdown(response.content),
-                    title=f"[bold]{response.provider.title()} ({response.model})[/bold]",
+                    title=f"[bold]{get_provider_display_name(response.provider)} ({response.model})[/bold]",
                     border_style="blue",
                 )
             )
@@ -772,7 +764,7 @@ def ask(
                 usage = smart_router.get_usage_summary()
                 if usage["total_calls"] > 0:
                     console.print(
-                        f"\n[dim]Usage: {usage['total_calls']} total calls, ${usage['estimated_cost']:.4f} estimated cost[/dim]"
+                        "\n[dim]Usage: {usage['total_calls']} total calls, ${usage['estimated_cost']:.4f} estimated cost[/dim]"
                     )
             elif response.usage:
                 usage_table = Table(title="Usage Information")
@@ -788,7 +780,7 @@ def ask(
             print_error(str(e))
             if smart_route:
                 console.print(
-                    f"[yellow]Smart routing failed. Try using a specific provider with --provider.[/yellow]"
+                    "[yellow]Smart routing failed. Try using a specific provider with --provider.[/yellow]"
                 )
             raise typer.Exit(1)
 
@@ -818,7 +810,7 @@ def chat(
             if not chat_provider:
                 chat_provider, chat_model = get_default_open_source_provider()
                 console.print(
-                    f"[cyan]Using open-source model: {chat_provider} ({chat_model})[/cyan]\n"
+                    "[cyan]Using open-source model: {chat_provider} ({chat_model})[/cyan]\n"
                 )
 
             # Add system message if provided
@@ -865,7 +857,7 @@ def chat(
 
                     # Display response
                     console.print(
-                        f"\n[bold blue]{response.provider.title()}[/bold blue]: {response.content}\n"
+                        "\n[bold blue]{response.provider.title()}[/bold blue]: {response.content}\n"
                     )
 
                 except Exception as e:
@@ -906,7 +898,7 @@ def debate(
                     model_configs.append({"provider": provider, "model": model})
                 else:
                     print_error(
-                        f"Invalid model format: {model_str}. Use provider:model format."
+                        "Invalid model format: {model_str}. Use provider:model format."
                     )
                     raise typer.Exit(1)
 
@@ -915,9 +907,9 @@ def debate(
                 raise typer.Exit(1)
 
             console.print(
-                f"[bold blue]Starting debate with {len(model_configs)} models for {rounds} rounds[/bold blue]\n"
+                "[bold blue]Starting debate with {len(model_configs)} models for {rounds} rounds[/bold blue]\n"
             )
-            console.print(Panel(f"[bold]Topic:[/bold] {prompt}", border_style="blue"))
+            console.print(Panel("[bold]Topic:[/bold] {prompt}", border_style="blue"))
             console.print("\n")
 
             responses = await router.debate(
@@ -929,12 +921,11 @@ def debate(
             # Display debate results
             for i, response in enumerate(responses):
                 round_num = (i // len(model_configs)) + 1
-                model_name = f"{response.provider.title()} ({response.model})"
 
                 console.print(
                     Panel(
                         Markdown(response.content),
-                        title=f"[bold]Round {round_num} - {model_name}[/bold]",
+                        title="[bold]Round {round_num} - {model_name}[/bold]",
                         border_style="green" if round_num % 2 == 1 else "yellow",
                     )
                 )
@@ -986,7 +977,7 @@ def list_models(
         # Use provider API (legacy method)
         if provider:
             if provider not in model_registry.list_models():
-                print_error(f"Unknown provider: {provider}")
+                print_error("Unknown provider: {provider}")
                 raise typer.Exit(1)
 
             try:
@@ -996,7 +987,7 @@ def list_models(
                     dummy_instance = model_class("dummy")
                     models = dummy_instance.get_available_models()
 
-                    table = Table(title=f"Available Models for {provider.title()}")
+                    table = Table(title="Available Models for {provider.title()}")
                     table.add_column("Model", style="cyan")
 
                     for model in models:
@@ -1004,11 +995,11 @@ def list_models(
 
                     console.print(table)
                 else:
-                    print_error(f"Provider {provider} not found")
+                    print_error("Provider {provider} not found")
                     raise typer.Exit(1)
 
-            except Exception as e:
-                print_error(f"Error listing models for {provider}: {str(e)}")
+            except Exception:
+                print_error("Error listing models for {provider}: {str(e)}")
                 raise typer.Exit(1)
         else:
             # List all providers
@@ -1037,9 +1028,9 @@ def usage():
         return
 
     # Show summary
-    console.print(f"[bold]Total Calls:[/bold] {usage_summary['total_calls']}")
+    console.print("[bold]Total Calls:[/bold] {usage_summary['total_calls']}")
     console.print(
-        f"[bold]Estimated Cost:[/bold] ${usage_summary['estimated_cost']:.4f}"
+        "[bold]Estimated Cost:[/bold] ${usage_summary['estimated_cost']:.4f}"
     )
     console.print()
 
@@ -1054,7 +1045,7 @@ def usage():
 
     for key, data in usage_summary["providers"].items():
         remaining = "∞" if data["is_local"] else str(data["remaining_calls"])
-        cost = "$0.00" if data["is_local"] else f"${data['cost']:.4f}"
+        cost = "$0.00" if data["is_local"] else "${data['cost']:.4f}"
         provider_type = "Local" if data["is_local"] else "Cloud"
 
         table.add_row(
@@ -1069,7 +1060,7 @@ def usage():
     console.print(table)
 
     # Show recommendations
-    console.print(f"\n[bold]💡 Recommendations:[/bold]")
+    console.print("\n[bold]💡 Recommendations:[/bold]")
     if usage_summary["estimated_cost"] > 0.01:
         console.print("• Consider using local models for simple tasks to reduce costs")
         console.print("• Use --smart-route flag for automatic cost optimization")
@@ -1090,7 +1081,7 @@ def reset_usage(
     """Reset usage statistics."""
     if provider:
         smart_router.reset_usage(provider)
-        console.print(f"[green]Reset usage for {provider}[/green]")
+        console.print("[green]Reset usage for {provider}[/green]")
     else:
         smart_router.reset_usage()
         console.print("[green]Reset all usage statistics[/green]")
@@ -1106,33 +1097,33 @@ def smart_route(
     """Smart route a prompt to the most cost-efficient model."""
     decision = smart_router.smart_route(prompt, explain_only=explain_only)
 
-    console.print(f"\n[bold blue]🧠 Smart Routing Decision[/bold blue]")
+    console.print("\n[bold blue]🧠 Smart Routing Decision[/bold blue]")
     console.print(
-        f"[dim]Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}[/dim]"
+        "[dim]Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}[/dim]"
     )
-    console.print(f"[bold]Complexity:[/bold] {decision.complexity.value.title()}")
+    console.print("[bold]Complexity:[/bold] {decision.complexity.value.title()}")
     console.print(
-        f"[bold]Selected:[/bold] {decision.selected_provider}/{decision.selected_model}"
+        "[bold]Selected:[/bold] {decision.selected_provider}/{decision.selected_model}"
     )
-    console.print(f"[bold]Reasoning:[/bold] {decision.reasoning}")
-    console.print(f"[bold]Estimated Cost:[/bold] ${decision.estimated_cost:.4f}")
+    console.print("[bold]Reasoning:[/bold] {decision.reasoning}")
+    console.print("[bold]Estimated Cost:[/bold] ${decision.estimated_cost:.4f}")
 
     if decision.alternatives:
-        console.print(f"\n[bold]Alternatives:[/bold]")
+        console.print("\n[bold]Alternatives:[/bold]")
         for alt_provider, alt_model, alt_reason in decision.alternatives[:3]:
-            console.print(f"• {alt_provider}/{alt_model} - {alt_reason}")
+            console.print("• {alt_provider}/{alt_model} - {alt_reason}")
 
     if explain_only:
         console.print(
-            f"\n[green]Routing explanation complete. Use 'cosmo ask --smart-route' to execute.[/green]"
+            "\n[green]Routing explanation complete. Use 'cosmo ask --smart-route' to execute.[/green]"
         )
     elif decision.selected_provider == "none":
         console.print(
-            f"\n[red]No suitable provider found. Please login to providers or check local models.[/red]"
+            "\n[red]No suitable provider found. Please login to providers or check local models.[/red]"
         )
     else:
         console.print(
-            f"\n[green]Use 'cosmo ask --smart-route \"{prompt}\"' to execute this routing decision.[/green]"
+            "\n[green]Use 'cosmo ask --smart-route \"{prompt}\"' to execute this routing decision.[/green]"
         )
 
 
@@ -1152,13 +1143,13 @@ def configure_smart_routing(
         if free_tier_limit is not None:
             config_manager.set_free_tier_limit(provider, model, free_tier_limit)
             console.print(
-                f"[green]Set free tier limit for {provider}/{model}: {free_tier_limit} calls[/green]"
+                "[green]Set free tier limit for {provider}/{model}: {free_tier_limit} calls[/green]"
             )
 
         if cost_per_call is not None:
             config_manager.set_custom_cost(provider, model, cost_per_call)
             console.print(
-                f"[green]Set cost for {provider}/{model}: ${cost_per_call:.4f} per call[/green]"
+                "[green]Set cost for {provider}/{model}: ${cost_per_call:.4f} per call[/green]"
             )
 
         if free_tier_limit is None and cost_per_call is None:
@@ -1166,8 +1157,8 @@ def configure_smart_routing(
                 "[yellow]Please specify --limit or --cost to configure smart routing.[/yellow]"
             )
 
-    except Exception as e:
-        console.print(f"[red]Error configuring smart routing: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error configuring smart routing: {str(e)}[/red]")
 
 
 @app.command()
@@ -1186,7 +1177,7 @@ def models(
         True, "--all", help="Show all models including inactive"
     ),
     format: str = typer.Option(
-        "table", "--format", "-f", help="Output format (table, json, csv)"
+        "table", "--format", "-", help="Output format (table, json, csv)"
     ),
 ):
     """List and manage models in the model library."""
@@ -1198,7 +1189,7 @@ def models(
                 tier_enum = ModelTier(tier.lower())
             except ValueError:
                 console.print(
-                    f"[red]Invalid tier: {tier}. Valid options: free, basic, standard, premium, enterprise[/red]"
+                    "[red]Invalid tier: {tier}. Valid options: free, basic, standard, premium, enterprise[/red]"
                 )
                 return
 
@@ -1208,7 +1199,7 @@ def models(
                 type_enum = ModelType(type.lower())
             except ValueError:
                 console.print(
-                    f"[red]Invalid type: {type}. Valid options: chat, completion, embedding, vision, audio, multimodal[/red]"
+                    "[red]Invalid type: {type}. Valid options: chat, completion, embedding, vision, audio, multimodal[/red]"
                 )
                 return
 
@@ -1288,8 +1279,8 @@ def models(
 
             console.print(table)
 
-    except Exception as e:
-        console.print(f"[red]Error listing models: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error listing models: {str(e)}[/red]")
 
 
 @app.command()
@@ -1300,22 +1291,22 @@ def model_info(
     try:
         model = model_library.get_model(model_id)
         if not model:
-            console.print(f"[red]Model not found: {model_id}[/red]")
+            console.print("[red]Model not found: {model_id}[/red]")
             return
 
         # Display model information
         console.print(
             Panel(
-                f"[bold]Provider:[/bold] {model.provider.title()}\n"
-                f"[bold]Model ID:[/bold] {model.model_id}\n"
-                f"[bold]Display Name:[/bold] {model.display_name}\n"
-                f"[bold]Description:[/bold] {model.description}\n"
-                f"[bold]Type:[/bold] {model.model_type.value.title()}\n"
-                f"[bold]Tier:[/bold] {model.tier.value.title()}\n"
-                f"[bold]Active:[/bold] {'Yes' if model.is_active else 'No'}\n"
-                f"[bold]Local:[/bold] {'Yes' if model.is_local else 'No'}\n"
-                f"[bold]Tags:[/bold] {', '.join(model.tags)}",
-                title=f"[bold]Model Information[/bold]",
+                "[bold]Provider:[/bold] {model.provider.title()}\n"
+                "[bold]Model ID:[/bold] {model.model_id}\n"
+                "[bold]Display Name:[/bold] {model.display_name}\n"
+                "[bold]Description:[/bold] {model.description}\n"
+                "[bold]Type:[/bold] {model.model_type.value.title()}\n"
+                "[bold]Tier:[/bold] {model.tier.value.title()}\n"
+                "[bold]Active:[/bold] {'Yes' if model.is_active else 'No'}\n"
+                "[bold]Local:[/bold] {'Yes' if model.is_local else 'No'}\n"
+                "[bold]Tags:[/bold] {', '.join(model.tags)}",
+                title="[bold]Model Information[/bold]",
                 border_style="blue",
             )
         )
@@ -1323,45 +1314,43 @@ def model_info(
         # Capabilities
         console.print(
             Panel(
-                f"[bold]Max Tokens:[/bold] {model.capabilities.max_tokens or 'Unlimited'}\n"
-                f"[bold]Max Input Tokens:[/bold] {model.capabilities.max_input_tokens or 'Unlimited'}\n"
-                f"[bold]Context Window:[/bold] {model.capabilities.context_window or 'Unknown'}\n"
-                f"[bold]Training Data Cutoff:[/bold] {model.capabilities.training_data_cutoff or 'Unknown'}\n"
-                f"[bold]Supports Streaming:[/bold] {'Yes' if model.capabilities.supports_streaming else 'No'}\n"
-                f"[bold]Supports Function Calling:[/bold] {'Yes' if model.capabilities.supports_function_calling else 'No'}\n"
-                f"[bold]Supports Vision:[/bold] {'Yes' if model.capabilities.supports_vision else 'No'}\n"
-                f"[bold]Supports Audio:[/bold] {'Yes' if model.capabilities.supports_audio else 'No'}\n"
-                f"[bold]Supports Embeddings:[/bold] {'Yes' if model.capabilities.supports_embeddings else 'No'}",
+                "[bold]Max Tokens:[/bold] {model.capabilities.max_tokens or 'Unlimited'}\n"
+                "[bold]Max Input Tokens:[/bold] {model.capabilities.max_input_tokens or 'Unlimited'}\n"
+                "[bold]Context Window:[/bold] {model.capabilities.context_window or 'Unknown'}\n"
+                "[bold]Training Data Cutoff:[/bold] {model.capabilities.training_data_cutoff or 'Unknown'}\n"
+                "[bold]Supports Streaming:[/bold] {'Yes' if model.capabilities.supports_streaming else 'No'}\n"
+                "[bold]Supports Function Calling:[/bold] {'Yes' if model.capabilities.supports_function_calling else 'No'}\n"
+                "[bold]Supports Vision:[/bold] {'Yes' if model.capabilities.supports_vision else 'No'}\n"
+                "[bold]Supports Audio:[/bold] {'Yes' if model.capabilities.supports_audio else 'No'}\n"
+                "[bold]Supports Embeddings:[/bold] {'Yes' if model.capabilities.supports_embeddings else 'No'}",
                 title="[bold]Capabilities[/bold]",
                 border_style="green",
-            )
-        )
+            ))
 
         # Pricing
         console.print(
             Panel(
-                f"[bold]Input Cost (per 1K tokens):[/bold] ${model.pricing.input_cost_per_1k_tokens:.4f}\n"
-                f"[bold]Output Cost (per 1K tokens):[/bold] ${model.pricing.output_cost_per_1k_tokens:.4f}\n"
-                f"[bold]Free Tier Limit:[/bold] {model.pricing.free_tier_limit if model.pricing.free_tier_limit != float('inf') else 'Unlimited'}\n"
-                f"[bold]Free Tier Reset:[/bold] {model.pricing.free_tier_reset_period.title()}\n"
-                f"[bold]Currency:[/bold] {model.pricing.currency}",
+                "[bold]Input Cost (per 1K tokens):[/bold] ${model.pricing.input_cost_per_1k_tokens:.4f}\n"
+                "[bold]Output Cost (per 1K tokens):[/bold] ${model.pricing.output_cost_per_1k_tokens:.4f}\n"
+                "[bold]Free Tier Limit:[/bold] {model.pricing.free_tier_limit if model.pricing.free_tier_limit != float('inf') else 'Unlimited'}\n"
+                "[bold]Free Tier Reset:[/bold] {model.pricing.free_tier_reset_period.title()}\n"
+                "[bold]Currency:[/bold] {model.pricing.currency}",
                 title="[bold]Pricing[/bold]",
                 border_style="yellow",
-            )
-        )
+            ))
 
         # Metadata
         console.print(
             Panel(
-                f"[bold]Created:[/bold] {model.created_at}\n"
-                f"[bold]Updated:[/bold] {model.updated_at}",
+                "[bold]Created:[/bold] {model.created_at}\n"
+                "[bold]Updated:[/bold] {model.updated_at}",
                 title="[bold]Metadata[/bold]",
                 border_style="magenta",
             )
         )
 
-    except Exception as e:
-        console.print(f"[red]Error showing model info: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error showing model info: {str(e)}[/red]")
 
 
 @app.command()
@@ -1373,11 +1362,11 @@ def search_models(
         results = model_library.search_models(query)
 
         if not results:
-            console.print(f"[yellow]No models found matching '{query}'[/yellow]")
+            console.print("[yellow]No models found matching '{query}'[/yellow]")
             return
 
-        console.print(f"[bold]Search Results for '{query}'[/bold]")
-        console.print(f"Found {len(results)} model(s)\n")
+        console.print("[bold]Search Results for '{query}'[/bold]")
+        console.print("Found {len(results)} model(s)\n")
 
         table = Table(title="Search Results")
         table.add_column("Provider", style="cyan")
@@ -1401,8 +1390,8 @@ def search_models(
 
         console.print(table)
 
-    except Exception as e:
-        console.print(f"[red]Error searching models: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error searching models: {str(e)}[/red]")
 
 
 @app.command()
@@ -1413,10 +1402,10 @@ def model_stats():
 
         console.print(
             Panel(
-                f"[bold]Total Models:[/bold] {stats['total_models']}\n"
-                f"[bold]Active Models:[/bold] {stats['active_models']}\n"
-                f"[bold]Local Models:[/bold] {stats['local_models']}\n"
-                f"[bold]Free Models:[/bold] {stats['free_models']}",
+                "[bold]Total Models:[/bold] {stats['total_models']}\n"
+                "[bold]Active Models:[/bold] {stats['active_models']}\n"
+                "[bold]Local Models:[/bold] {stats['local_models']}\n"
+                "[bold]Free Models:[/bold] {stats['free_models']}",
                 title="[bold]Model Library Statistics[/bold]",
                 border_style="blue",
             )
@@ -1458,8 +1447,8 @@ def model_stats():
 
             console.print(type_table)
 
-    except Exception as e:
-        console.print(f"[red]Error showing model statistics: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error showing model statistics: {str(e)}[/red]")
 
 
 @app.command()
@@ -1469,11 +1458,11 @@ def export_models(
     """Export the model library to a file."""
     try:
         if model_library.export_library(file_path):
-            console.print(f"[green]Model library exported to {file_path}[/green]")
+            console.print("[green]Model library exported to {file_path}[/green]")
         else:
-            console.print(f"[red]Failed to export model library to {file_path}[/red]")
-    except Exception as e:
-        console.print(f"[red]Error exporting models: {str(e)}[/red]")
+            console.print("[red]Failed to export model library to {file_path}[/red]")
+    except Exception:
+        console.print("[red]Error exporting models: {str(e)}[/red]")
 
 
 @app.command()
@@ -1486,11 +1475,11 @@ def import_models(
     """Import models from a file."""
     try:
         if model_library.import_library(file_path, overwrite):
-            console.print(f"[green]Models imported from {file_path}[/green]")
+            console.print("[green]Models imported from {file_path}[/green]")
         else:
-            console.print(f"[red]Failed to import models from {file_path}[/red]")
-    except Exception as e:
-        console.print(f"[red]Error importing models: {str(e)}[/red]")
+            console.print("[red]Failed to import models from {file_path}[/red]")
+    except Exception:
+        console.print("[red]Error importing models: {str(e)}[/red]")
 
 
 @app.command()
@@ -1510,7 +1499,7 @@ def register():
         description = Prompt.ask("Description", default="Custom model")
 
         # Model Type
-        console.print(f"\n[bold]Model Type[/bold]")
+        console.print("\n[bold]Model Type[/bold]")
         console.print(
             "Available types: chat, completion, embedding, vision, audio, multimodal"
         )
@@ -1518,21 +1507,21 @@ def register():
         try:
             model_type = ModelType(model_type_input.lower())
         except ValueError:
-            console.print(f"[red]Invalid model type: {model_type_input}[/red]")
+            console.print("[red]Invalid model type: {model_type_input}[/red]")
             return
 
         # Model Tier
-        console.print(f"\n[bold]Model Tier[/bold]")
+        console.print("\n[bold]Model Tier[/bold]")
         console.print("Available tiers: free, basic, standard, premium, enterprise")
         tier_input = Prompt.ask("Model tier", default="standard")
         try:
             tier = ModelTier(tier_input.lower())
         except ValueError:
-            console.print(f"[red]Invalid model tier: {tier_input}[/red]")
+            console.print("[red]Invalid model tier: {tier_input}[/red]")
             return
 
         # Capabilities
-        console.print(f"\n[bold]Model Capabilities[/bold]")
+        console.print("\n[bold]Model Capabilities[/bold]")
         max_tokens = Prompt.ask("Max output tokens", default="4096")
         max_input_tokens = Prompt.ask("Max input tokens", default="8192")
         context_window = Prompt.ask("Context window size", default="8192")
@@ -1548,7 +1537,7 @@ def register():
         )
 
         # Pricing
-        console.print(f"\n[bold]Pricing Information[/bold]")
+        console.print("\n[bold]Pricing Information[/bold]")
         input_cost = Prompt.ask("Input cost per 1K tokens ($)", default="0.0")
         output_cost = Prompt.ask("Output cost per 1K tokens ($)", default="0.0")
         free_tier_limit = Prompt.ask("Free tier limit (calls per month)", default="0")
@@ -1559,12 +1548,12 @@ def register():
         )
 
         # Additional Information
-        console.print(f"\n[bold]Additional Information[/bold]")
+        console.print("\n[bold]Additional Information[/bold]")
         is_local = Confirm.ask("Is this a local model?", default=False)
         is_active = Confirm.ask("Is this model active?", default=True)
 
         # Tags
-        console.print(f"\n[bold]Tags[/bold]")
+        console.print("\n[bold]Tags[/bold]")
         console.print("Enter tags separated by commas (e.g., coding, fast, reliable)")
         tags_input = Prompt.ask("Tags", default="custom")
         tags = [tag.strip() for tag in tags_input.split(",")]
@@ -1577,7 +1566,7 @@ def register():
         )
 
         model_config = ModelConfig(
-            name=f"{provider}-{model_id}",
+            name="{provider}-{model_id}",
             provider=provider,
             model_id=model_id,
             display_name=display_name,
@@ -1615,18 +1604,18 @@ def register():
         )
 
         # Show summary
-        console.print(f"\n[bold]Model Configuration Summary[/bold]")
+        console.print("\n[bold]Model Configuration Summary[/bold]")
         console.print(
             Panel(
-                f"[bold]Provider:[/bold] {model_config.provider}\n"
-                f"[bold]Model ID:[/bold] {model_config.model_id}\n"
-                f"[bold]Display Name:[/bold] {model_config.display_name}\n"
-                f"[bold]Description:[/bold] {model_config.description}\n"
-                f"[bold]Type:[/bold] {model_config.model_type.value}\n"
-                f"[bold]Tier:[/bold] {model_config.tier.value}\n"
-                f"[bold]Local:[/bold] {'Yes' if model_config.is_local else 'No'}\n"
-                f"[bold]Active:[/bold] {'Yes' if model_config.is_active else 'No'}\n"
-                f"[bold]Tags:[/bold] {', '.join(model_config.tags)}",
+                "[bold]Provider:[/bold] {model_config.provider}\n"
+                "[bold]Model ID:[/bold] {model_config.model_id}\n"
+                "[bold]Display Name:[/bold] {model_config.display_name}\n"
+                "[bold]Description:[/bold] {model_config.description}\n"
+                "[bold]Type:[/bold] {model_config.model_type.value}\n"
+                "[bold]Tier:[/bold] {model_config.tier.value}\n"
+                "[bold]Local:[/bold] {'Yes' if model_config.is_local else 'No'}\n"
+                "[bold]Active:[/bold] {'Yes' if model_config.is_active else 'No'}\n"
+                "[bold]Tags:[/bold] {', '.join(model_config.tags)}",
                 title="[bold]Configuration Summary[/bold]",
                 border_style="blue",
             )
@@ -1634,25 +1623,25 @@ def register():
 
         # Confirm registration
         if Confirm.ask("Register this model?"):
-            model_id_full = f"{provider}:{model_id}"
+            model_id_full = "{provider}:{model_id}"
             if model_library.add_model(model_config):
                 console.print(
-                    f"[green]Model '{model_id_full}' registered successfully![/green]"
+                    "[green]Model '{model_id_full}' registered successfully![/green]"
                 )
                 console.print(
-                    f"[dim]You can now use this model with: cosmo ask --provider {provider} --model {model_id}[/dim]"
+                    "[dim]You can now use this model with: cosmo ask --provider {provider} --model {model_id}[/dim]"
                 )
             else:
                 console.print(
-                    f"[red]Failed to register model. It may already exist.[/red]"
+                    "[red]Failed to register model. It may already exist.[/red]"
                 )
         else:
             console.print("[yellow]Model registration cancelled.[/yellow]")
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Model registration cancelled.[/yellow]")
-    except Exception as e:
-        console.print(f"[red]Error during registration: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during registration: {str(e)}[/red]")
 
 
 @app.command()
@@ -1689,13 +1678,13 @@ def register_quick(
         try:
             model_type_enum = ModelType(model_type.lower())
             tier_enum = ModelTier(tier.lower())
-        except ValueError as e:
-            console.print(f"[red]Invalid model type or tier: {str(e)}[/red]")
+        except ValueError:
+            console.print("[red]Invalid model type or tier: {str(e)}[/red]")
             return
 
         # Set defaults
         display_name = display_name or model_id
-        description = description or f"{display_name} model"
+        description = description or "{display_name} model"
         tags_list = [tag.strip() for tag in tags.split(",")] if tags else ["custom"]
 
         # Create model configuration
@@ -1706,7 +1695,7 @@ def register_quick(
         )
 
         model_config = ModelConfig(
-            name=f"{provider}-{model_id}",
+            name="{provider}-{model_id}",
             provider=provider,
             model_id=model_id,
             display_name=display_name,
@@ -1734,19 +1723,19 @@ def register_quick(
         )
 
         # Register model
-        model_id_full = f"{provider}:{model_id}"
+        model_id_full = "{provider}:{model_id}"
         if model_library.add_model(model_config):
             console.print(
-                f"[green]Model '{model_id_full}' registered successfully![/green]"
+                "[green]Model '{model_id_full}' registered successfully![/green]"
             )
             console.print(
-                f"[dim]Use: cosmo ask --provider {provider} --model {model_id}[/dim]"
+                "[dim]Use: cosmo ask --provider {provider} --model {model_id}[/dim]"
             )
         else:
-            console.print(f"[red]Failed to register model. It may already exist.[/red]")
+            console.print("[red]Failed to register model. It may already exist.[/red]")
 
-    except Exception as e:
-        console.print(f"[red]Error during registration: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during registration: {str(e)}[/red]")
 
 
 @app.command()
@@ -1757,19 +1746,19 @@ def unregister(
     """Unregister a model from the library."""
     try:
         if not confirm:
-            if not Confirm.ask(f"Are you sure you want to unregister '{model_id}'?"):
+            if not Confirm.ask("Are you sure you want to unregister '{model_id}'?"):
                 console.print("[yellow]Unregistration cancelled.[/yellow]")
                 return
 
         if model_library.remove_model(model_id):
             console.print(
-                f"[green]Model '{model_id}' unregistered successfully![/green]"
+                "[green]Model '{model_id}' unregistered successfully![/green]"
             )
         else:
-            console.print(f"[red]Model '{model_id}' not found in library.[/red]")
+            console.print("[red]Model '{model_id}' not found in library.[/red]")
 
-    except Exception as e:
-        console.print(f"[red]Error during unregistration: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during unregistration: {str(e)}[/red]")
 
 
 @app.command()
@@ -1925,8 +1914,8 @@ def register_template(
         }
 
         if template.lower() not in templates:
-            console.print(f"[red]Unknown template: {template}[/red]")
-            console.print(f"Available templates: {', '.join(templates.keys())}")
+            console.print("[red]Unknown template: {template}[/red]")
+            console.print("Available templates: {', '.join(templates.keys())}")
             return
 
         # Get template
@@ -1942,7 +1931,7 @@ def register_template(
 
         # Create model configuration
         model_config = ModelConfig(
-            name=f"{template_config['provider']}-{template_config['model_id']}",
+            name="{template_config['provider']}-{template_config['model_id']}",
             provider=template_config["provider"],
             model_id=template_config["model_id"],
             display_name=template_config["display_name"],
@@ -1957,35 +1946,35 @@ def register_template(
         )
 
         # Show summary
-        console.print(f"[bold]Registering model from template: {template}[/bold]")
+        console.print("[bold]Registering model from template: {template}[/bold]")
         console.print(
             Panel(
-                f"[bold]Provider:[/bold] {model_config.provider}\n"
-                f"[bold]Model ID:[/bold] {model_config.model_id}\n"
-                f"[bold]Display Name:[/bold] {model_config.display_name}\n"
-                f"[bold]Description:[/bold] {model_config.description}\n"
-                f"[bold]Type:[/bold] {model_config.model_type.value}\n"
-                f"[bold]Tier:[/bold] {model_config.tier.value}\n"
-                f"[bold]Tags:[/bold] {', '.join(model_config.tags)}",
+                "[bold]Provider:[/bold] {model_config.provider}\n"
+                "[bold]Model ID:[/bold] {model_config.model_id}\n"
+                "[bold]Display Name:[/bold] {model_config.display_name}\n"
+                "[bold]Description:[/bold] {model_config.description}\n"
+                "[bold]Type:[/bold] {model_config.model_type.value}\n"
+                "[bold]Tier:[/bold] {model_config.tier.value}\n"
+                "[bold]Tags:[/bold] {', '.join(model_config.tags)}",
                 title="[bold]Template Configuration[/bold]",
                 border_style="green",
             )
         )
 
         # Register model
-        model_id_full = f"{model_config.provider}:{model_config.model_id}"
+        model_id_full = "{model_config.provider}:{model_config.model_id}"
         if model_library.add_model(model_config):
             console.print(
-                f"[green]Model '{model_id_full}' registered successfully from template![/green]"
+                "[green]Model '{model_id_full}' registered successfully from template![/green]"
             )
             console.print(
-                f"[dim]Use: cosmo ask --provider {model_config.provider} --model {model_config.model_id}[/dim]"
+                "[dim]Use: cosmo ask --provider {model_config.provider} --model {model_config.model_id}[/dim]"
             )
         else:
-            console.print(f"[red]Failed to register model. It may already exist.[/red]")
+            console.print("[red]Failed to register model. It may already exist.[/red]")
 
-    except Exception as e:
-        console.print(f"[red]Error during template registration: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during template registration: {str(e)}[/red]")
 
 
 @app.command()
@@ -2016,39 +2005,39 @@ def register_from_file(
         model_config = ModelConfig.from_dict(config_data)
 
         # Show summary
-        console.print(f"[bold]Registering model from file: {file_path}[/bold]")
+        console.print("[bold]Registering model from file: {file_path}[/bold]")
         console.print(
             Panel(
-                f"[bold]Provider:[/bold] {model_config.provider}\n"
-                f"[bold]Model ID:[/bold] {model_config.model_id}\n"
-                f"[bold]Display Name:[/bold] {model_config.display_name}\n"
-                f"[bold]Description:[/bold] {model_config.description}\n"
-                f"[bold]Type:[/bold] {model_config.model_type.value}\n"
-                f"[bold]Tier:[/bold] {model_config.tier.value}\n"
-                f"[bold]Tags:[/bold] {', '.join(model_config.tags)}",
+                "[bold]Provider:[/bold] {model_config.provider}\n"
+                "[bold]Model ID:[/bold] {model_config.model_id}\n"
+                "[bold]Display Name:[/bold] {model_config.display_name}\n"
+                "[bold]Description:[/bold] {model_config.description}\n"
+                "[bold]Type:[/bold] {model_config.model_type.value}\n"
+                "[bold]Tier:[/bold] {model_config.tier.value}\n"
+                "[bold]Tags:[/bold] {', '.join(model_config.tags)}",
                 title="[bold]File Configuration[/bold]",
                 border_style="yellow",
             )
         )
 
         # Register model
-        model_id_full = f"{model_config.provider}:{model_config.model_id}"
+        model_id_full = "{model_config.provider}:{model_config.model_id}"
         if model_library.add_model(model_config):
             console.print(
-                f"[green]Model '{model_id_full}' registered successfully from file![/green]"
+                "[green]Model '{model_id_full}' registered successfully from file![/green]"
             )
             console.print(
-                f"[dim]Use: cosmo ask --provider {model_config.provider} --model {model_config.model_id}[/dim]"
+                "[dim]Use: cosmo ask --provider {model_config.provider} --model {model_config.model_id}[/dim]"
             )
         else:
-            console.print(f"[red]Failed to register model. It may already exist.[/red]")
+            console.print("[red]Failed to register model. It may already exist.[/red]")
 
     except FileNotFoundError:
-        console.print(f"[red]File not found: {file_path}[/red]")
+        console.print("[red]File not found: {file_path}[/red]")
     except json.JSONDecodeError:
-        console.print(f"[red]Invalid JSON format in file: {file_path}[/red]")
-    except Exception as e:
-        console.print(f"[red]Error during file registration: {str(e)}[/red]")
+        console.print("[red]Invalid JSON format in file: {file_path}[/red]")
+    except Exception:
+        console.print("[red]Error during file registration: {str(e)}[/red]")
 
 
 @app.command()
@@ -2141,8 +2130,8 @@ def distribute(
         }
 
         if job_type not in job_type_map:
-            console.print(f"[red]Invalid job type: {job_type}[/red]")
-            console.print(f"Available types: {', '.join(job_type_map.keys())}")
+            console.print("[red]Invalid job type: {job_type}[/red]")
+            console.print("Available types: {', '.join(job_type_map.keys())}")
             return
 
         # Parse models
@@ -2161,54 +2150,54 @@ def distribute(
 
         if explain:
             # Show distribution decision
-            console.print(f"[bold]Job Distribution Decision[/bold]")
-            console.print(f"Job ID: {job_request.job_id}")
-            console.print(f"Job Type: {job_request.job_type.value}")
+            console.print("[bold]Job Distribution Decision[/bold]")
+            console.print("Job ID: {job_request.job_id}")
+            console.print("Job Type: {job_request.job_type.value}")
             console.print(
-                f"Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
+                "Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
             )
-            console.print(f"Priority: {job_request.priority}")
-            console.print(f"Timeout: {job_request.timeout}s")
+            console.print("Priority: {job_request.priority}")
+            console.print("Timeout: {job_request.timeout}s")
 
             # Show model status
             stats = job_distributor.get_distribution_stats()
-            console.print(f"\n[bold]Model Status[/bold]")
+            console.print("\n[bold]Model Status[/bold]")
             for model_key, status in stats["model_status"].items():
                 console.print(
-                    f"  {model_key}: Load={status['current_load']}, Success={status['success_rate']:.2f}, Response={status['avg_response_time']:.2f}s"
+                    "  {model_key}: Load={status['current_load']}, Success={status['success_rate']:.2f}, Response={status['avg_response_time']:.2f}s"
                 )
 
             return
 
         # Execute job
-        console.print(f"[bold]Executing job: {job_request.job_id}[/bold]")
-        console.print(f"Type: {job_request.job_type.value}")
+        console.print("[bold]Executing job: {job_request.job_id}[/bold]")
+        console.print("Type: {job_request.job_type.value}")
         console.print(
-            f"Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
+            "Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
         )
 
         result = job_distributor.distribute_job(job_request)
 
         # Display result
         if result.success:
-            console.print(f"\n[green]Job completed successfully![/green]")
-            console.print(f"Model used: {result.model_used}")
-            console.print(f"Execution time: {result.execution_time:.2f}s")
-            console.print(f"Tokens used: {result.tokens_used}")
+            console.print("\n[green]Job completed successfully![/green]")
+            console.print("Model used: {result.model_used}")
+            console.print("Execution time: {result.execution_time:.2f}s")
+            console.print("Tokens used: {result.tokens_used}")
 
-            console.print(f"\n[bold]Response:[/bold]")
+            console.print("\n[bold]Response:[/bold]")
             console.print(result.response)
         else:
-            console.print(f"\n[red]Job failed![/red]")
-            console.print(f"Error: {result.error}")
-            console.print(f"Model attempted: {result.model_used}")
-            console.print(f"Execution time: {result.execution_time:.2f}s")
+            console.print("\n[red]Job failed![/red]")
+            console.print("Error: {result.error}")
+            console.print("Model attempted: {result.model_used}")
+            console.print("Execution time: {result.execution_time:.2f}s")
 
         # Save stats
         job_distributor.save_stats()
 
-    except Exception as e:
-        console.print(f"[red]Error during job distribution: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during job distribution: {str(e)}[/red]")
 
 
 @app.command()
@@ -2237,7 +2226,7 @@ def squeeze(
                     or model.is_local
                     or model.pricing.input_cost_per_1k_tokens == 0.0
                 ):
-                    free_models.append(f"{model.provider}:{model.model_id}")
+                    free_models.append("{model.provider}:{model.model_id}")
 
         if not free_models:
             console.print(
@@ -2246,12 +2235,12 @@ def squeeze(
             # Fallback to smart routing
             routing_decision = smart_router.smart_route(prompt, explain_only=explain)
             if explain:
-                console.print(f"[bold]Smart Routing Decision[/bold]")
+                console.print("[bold]Smart Routing Decision[/bold]")
                 console.print(
-                    f"Selected: {routing_decision.selected_provider}:{routing_decision.selected_model}"
+                    "Selected: {routing_decision.selected_provider}:{routing_decision.selected_model}"
                 )
-                console.print(f"Reasoning: {routing_decision.reasoning}")
-                console.print(f"Complexity: {routing_decision.complexity.value}")
+                console.print("Reasoning: {routing_decision.reasoning}")
+                console.print("Complexity: {routing_decision.complexity.value}")
                 return
 
             # Execute with smart routing
@@ -2274,39 +2263,39 @@ def squeeze(
         )
 
         if explain:
-            console.print(f"[bold]Squeeze Distribution Decision[/bold]")
-            console.print(f"Free models available: {len(free_models)}")
-            console.print(f"Models: {', '.join(free_models)}")
-            console.print(f"Strategy: Parallel execution across all free tiers")
+            console.print("[bold]Squeeze Distribution Decision[/bold]")
+            console.print("Free models available: {len(free_models)}")
+            console.print("Models: {', '.join(free_models)}")
+            console.print("Strategy: Parallel execution across all free tiers")
             return
 
         # Execute with free tier distribution
         console.print(
-            f"[bold]Squeezing across {len(free_models)} free models...[/bold]"
+            "[bold]Squeezing across {len(free_models)} free models...[/bold]"
         )
-        console.print(f"Models: {', '.join(free_models)}")
+        console.print("Models: {', '.join(free_models)}")
 
         result = job_distributor.distribute_job(job_request)
 
         # Display result
         if result.success:
-            console.print(f"\n[green]Task completed using free tier![/green]")
-            console.print(f"Model used: {result.model_used}")
-            console.print(f"Execution time: {result.execution_time:.2f}s")
-            console.print(f"Cost: $0.00 (free tier)")
+            console.print("\n[green]Task completed using free tier![/green]")
+            console.print("Model used: {result.model_used}")
+            console.print("Execution time: {result.execution_time:.2f}s")
+            console.print("Cost: $0.00 (free tier)")
 
-            console.print(f"\n[bold]Response:[/bold]")
+            console.print("\n[bold]Response:[/bold]")
             console.print(result.response)
         else:
-            console.print(f"\n[red]All free tiers failed![/red]")
-            console.print(f"Error: {result.error}")
-            console.print(f"Attempted models: {', '.join(free_models)}")
+            console.print("\n[red]All free tiers failed![/red]")
+            console.print("Error: {result.error}")
+            console.print("Attempted models: {', '.join(free_models)}")
 
         # Save stats
         job_distributor.save_stats()
 
-    except Exception as e:
-        console.print(f"[red]Error during squeeze execution: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error during squeeze execution: {str(e)}[/red]")
 
 
 @app.command()
@@ -2324,21 +2313,21 @@ def job_stats():
         console.print("[bold blue]Job Distribution Statistics[/bold blue]\n")
 
         # Overall stats
-        console.print(f"[bold]Overall Performance[/bold]")
-        console.print(f"Active Jobs: {stats['active_jobs']}")
-        console.print(f"Completed Jobs: {stats['completed_jobs']}")
+        console.print("[bold]Overall Performance[/bold]")
+        console.print("Active Jobs: {stats['active_jobs']}")
+        console.print("Completed Jobs: {stats['completed_jobs']}")
         console.print(
-            f"Average Response Time: {stats['performance']['avg_response_time']:.2f}s"
+            "Average Response Time: {stats['performance']['avg_response_time']:.2f}s"
         )
         console.print(
-            f"Total Success Rate: {stats['performance']['total_success_rate']:.2%}"
+            "Total Success Rate: {stats['performance']['total_success_rate']:.2%}"
         )
-        console.print(f"Total Errors: {stats['performance']['total_errors']}")
-        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
-        console.print(f"Total Requests: {stats['performance']['total_requests']:,}\n")
+        console.print("Total Errors: {stats['performance']['total_errors']}")
+        console.print("Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print("Total Requests: {stats['performance']['total_requests']:,}\n")
 
         # Model status
-        console.print(f"[bold]Model Status[/bold]")
+        console.print("[bold]Model Status[/bold]")
         if stats["model_status"]:
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("Model", style="cyan")
@@ -2354,9 +2343,9 @@ def job_stats():
                 table.add_row(
                     model_key,
                     str(status["current_load"]),
-                    f"{status['success_rate']:.2%}",
-                    f"{status['avg_response_time']:.2f}s",
-                    f"{status['total_tokens']:,}",
+                    "{status['success_rate']:.2%}",
+                    "{status['avg_response_time']:.2f}s",
+                    "{status['total_tokens']:,}",
                     str(status["total_requests"]),
                     str(status["error_count"]),
                     status["last_used"][:19] if status["last_used"] else "Never",
@@ -2366,8 +2355,8 @@ def job_stats():
         else:
             console.print("No model statistics available.")
 
-    except Exception as e:
-        console.print(f"[red]Error getting job statistics: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error getting job statistics: {str(e)}[/red]")
 
 
 @app.command()
@@ -2384,8 +2373,8 @@ def reset_job_stats():
 
         console.print("[green]Job distribution statistics reset successfully![/green]")
 
-    except Exception as e:
-        console.print(f"[red]Error resetting job statistics: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error resetting job statistics: {str(e)}[/red]")
 
 
 @app.command()
@@ -2403,15 +2392,15 @@ def token_stats():
         console.print("[bold blue]Token Usage Statistics[/bold blue]\n")
 
         # Overall token stats
-        console.print(f"[bold]Overall Token Usage[/bold]")
-        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
-        console.print(f"Total Requests: {stats['performance']['total_requests']:,}")
+        console.print("[bold]Overall Token Usage[/bold]")
+        console.print("Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print("Total Requests: {stats['performance']['total_requests']:,}")
         console.print(
-            f"Average Tokens per Request: {stats['performance']['total_tokens'] / max(stats['performance']['total_requests'], 1):.1f}\n"
+            "Average Tokens per Request: {stats['performance']['total_tokens'] / max(stats['performance']['total_requests'], 1):.1f}\n"
         )
 
         # Model token breakdown
-        console.print(f"[bold]Token Usage by Model[/bold]")
+        console.print("[bold]Token Usage by Model[/bold]")
         if stats["model_status"]:
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("Model", style="cyan")
@@ -2432,32 +2421,32 @@ def token_stats():
                 if status["total_tokens"] > 0:  # Only show models with usage
                     table.add_row(
                         model_key,
-                        f"{status['total_tokens']:,}",
-                        f"{status['total_input_tokens']:,}",
-                        f"{status['total_output_tokens']:,}",
-                        f"{status['avg_tokens_per_request']:.1f}",
+                        "{status['total_tokens']:,}",
+                        "{status['total_input_tokens']:,}",
+                        "{status['total_output_tokens']:,}",
+                        "{status['avg_tokens_per_request']:.1f}",
                         str(status["total_requests"]),
                     )
 
             console.print(table)
 
             # Token distribution chart
-            console.print(f"\n[bold]Token Distribution[/bold]")
+            console.print("\n[bold]Token Distribution[/bold]")
             total_tokens = stats["performance"]["total_tokens"]
             if total_tokens > 0:
                 for model_key, status in sorted_models[:5]:  # Top 5 models
                     if status["total_tokens"] > 0:
                         percentage = (status["total_tokens"] / total_tokens) * 100
                         bar_length = int(percentage / 2)  # Scale for display
-                        bar = "█" * bar_length
+                        "█" * bar_length
                         console.print(
-                            f"  {model_key:<30} {bar} {percentage:.1f}% ({status['total_tokens']:,} tokens)"
+                            "  {model_key:<30} {bar} {percentage:.1f}% ({status['total_tokens']:,} tokens)"
                         )
         else:
             console.print("No token usage data available.")
 
-    except Exception as e:
-        console.print(f"[red]Error getting token statistics: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error getting token statistics: {str(e)}[/red]")
 
 
 @app.command()
@@ -2475,21 +2464,21 @@ def model_performance():
         console.print("[bold blue]Model Performance Statistics[/bold blue]\n")
 
         # Overall performance
-        console.print(f"[bold]Overall Performance[/bold]")
-        console.print(f"Active Jobs: {stats['active_jobs']}")
-        console.print(f"Completed Jobs: {stats['completed_jobs']}")
+        console.print("[bold]Overall Performance[/bold]")
+        console.print("Active Jobs: {stats['active_jobs']}")
+        console.print("Completed Jobs: {stats['completed_jobs']}")
         console.print(
-            f"Average Response Time: {stats['performance']['avg_response_time']:.2f}s"
+            "Average Response Time: {stats['performance']['avg_response_time']:.2f}s"
         )
         console.print(
-            f"Total Success Rate: {stats['performance']['total_success_rate']:.2%}"
+            "Total Success Rate: {stats['performance']['total_success_rate']:.2%}"
         )
-        console.print(f"Total Errors: {stats['performance']['total_errors']}")
-        console.print(f"Total Tokens: {stats['performance']['total_tokens']:,}")
-        console.print(f"Total Requests: {stats['performance']['total_requests']:,}\n")
+        console.print("Total Errors: {stats['performance']['total_errors']}")
+        console.print("Total Tokens: {stats['performance']['total_tokens']:,}")
+        console.print("Total Requests: {stats['performance']['total_requests']:,}\n")
 
         # Detailed model performance
-        console.print(f"[bold]Model Performance Details[/bold]")
+        console.print("[bold]Model Performance Details[/bold]")
         if stats["model_status"]:
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("Model", style="cyan")
@@ -2512,10 +2501,10 @@ def model_performance():
                 table.add_row(
                     model_key,
                     str(status["current_load"]),
-                    f"{status['success_rate']:.2%}",
-                    f"{status['avg_response_time']:.2f}s",
-                    f"{status['total_tokens']:,}",
-                    f"{status['avg_tokens_per_request']:.1f}",
+                    "{status['success_rate']:.2%}",
+                    "{status['avg_response_time']:.2f}s",
+                    "{status['total_tokens']:,}",
+                    "{status['avg_tokens_per_request']:.1f}",
                     str(status["total_requests"]),
                     str(status["error_count"]),
                 )
@@ -2524,22 +2513,22 @@ def model_performance():
         else:
             console.print("No model performance data available.")
 
-    except Exception as e:
-        console.print(f"[red]Error getting performance statistics: {str(e)}[/red]")
+    except Exception:
+        console.print("[red]Error getting performance statistics: {str(e)}[/red]")
 
 
 @app.command()
 def config():
     """Show current configuration."""
-    config = config_manager.load()
+    config_manager.load()
 
     console.print(
         Panel(
-            f"[bold]Default Provider:[/bold] {config.default_provider}\n"
-            f"[bold]Default Model:[/bold] {config.default_model}\n"
-            f"[bold]Memory Enabled:[/bold] {config.memory_enabled}\n"
-            f"[bold]Memory Path:[/bold] {config.memory_path}\n"
-            f"[bold]Plugins Path:[/bold] {config.plugins_path}",
+            "[bold]Default Provider:[/bold] {config.default_provider}\n"
+            "[bold]Default Model:[/bold] {config.default_model}\n"
+            "[bold]Memory Enabled:[/bold] {config.memory_enabled}\n"
+            "[bold]Memory Path:[/bold] {config.memory_path}\n"
+            "[bold]Plugins Path:[/bold] {config.plugins_path}",
             title="[bold]Configuration[/bold]",
             border_style="blue",
         )
@@ -2549,11 +2538,11 @@ def config():
     smart_config = config_manager.get_smart_routing_config()
     console.print(
         Panel(
-            f"[bold]Smart Routing Enabled:[/bold] {smart_config.enabled}\n"
-            f"[bold]Prefer Local Models:[/bold] {smart_config.prefer_local}\n"
-            f"[bold]Cost Threshold:[/bold] ${smart_config.cost_threshold:.4f}\n"
-            f"[bold]Custom Limits:[/bold] {len(smart_config.free_tier_limits)} providers\n"
-            f"[bold]Custom Costs:[/bold] {len(smart_config.custom_costs)} providers",
+            "[bold]Smart Routing Enabled:[/bold] {smart_config.enabled}\n"
+            "[bold]Prefer Local Models:[/bold] {smart_config.prefer_local}\n"
+            "[bold]Cost Threshold:[/bold] ${smart_config.cost_threshold:.4f}\n"
+            "[bold]Custom Limits:[/bold] {len(smart_config.free_tier_limits)} providers\n"
+            "[bold]Custom Costs:[/bold] {len(smart_config.custom_costs)} providers",
             title="[bold]Smart Routing Configuration[/bold]",
             border_style="green",
         )
@@ -2567,13 +2556,13 @@ def config():
             console.print("\n[bold]Free Tier Limits:[/bold]")
             for provider, models in smart_config.free_tier_limits.items():
                 for model, limit in models.items():
-                    console.print(f"  • {provider}/{model}: {limit} calls")
+                    console.print("  • {provider}/{model}: {limit} calls")
 
         if smart_config.custom_costs:
             console.print("\n[bold]Custom Costs:[/bold]")
             for provider, models in smart_config.custom_costs.items():
                 for model, cost in models.items():
-                    console.print(f"  • {provider}/{model}: ${cost:.4f}/call")
+                    console.print("  • {provider}/{model}: ${cost:.4f}/call")
 
 
 if __name__ == "__main__":
