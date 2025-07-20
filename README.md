@@ -30,6 +30,122 @@ Cosmosapien CLI provides a single interface to interact with various LLM provide
 - **Load Balancing**: Distribute workloads across available models efficiently
 - **Fallback Mechanisms**: Automatic failover to alternative models on errors
 
+## Screenshots
+
+### Main Help Interface
+```
+Usage: cosmo [OPTIONS] COMMAND [ARGS]...
+
+Cosmosapien CLI - A modular command-line tool for multiple LLM providers
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────╮
+│ setup                     Set up local environment and install dependencies.                             │
+│ agents                    Show available AI agents and their capabilities.                               │
+│ collaborate               Get collaborative responses from multiple AI agents.                           │
+│ solve                     Use multiple agents to solve a complex problem.                                │
+│ hybrid                    Get responses from a mix of local and cloud agents.                            │
+│ version                   Show version information.                                                      │
+│ login                     Login to a provider by storing API key securely.                               │
+│ logout                    Logout from a provider by removing API key.                                    │
+│ status                    Show login status for all providers.                                           │
+│ providers                 Show detailed information about all providers.                                 │
+│ cosmic                    Launch the clean cosmic-themed interactive interface.                          │
+│ ask                       Ask a question to any supported LLM provider.                                  │
+│ chat                      Start an interactive chat session.                                             │
+│ debate                    Run a debate between multiple AI models.                                       │
+│ list-models               List available models.                                                         │
+│ usage                     Show usage statistics and cost tracking.                                       │
+│ reset-usage               Reset usage statistics.                                                        │
+│ smart-route               Smart route a prompt to the most cost-efficient model.                         │
+│ configure-smart-routing   Configure smart routing settings for a specific provider/model.                │
+│ models                    List and manage models in the model library.                                   │
+│ model-info                Show detailed information about a specific model.                              │
+│ search-models             Search models by name, description, or tags.                                   │
+│ model-stats               Show statistics about the model library.                                       │
+│ export-models             Export the model library to a file.                                            │
+│ import-models             Import models from a file.                                                     │
+│ register                  Register a new model interactively.                                            │
+│ register-quick            Quickly register a new model with minimal input.                               │
+│ unregister                Unregister a model from the library.                                           │
+│ register-template         Register a model using predefined templates.                                   │
+│ register-from-file        Register a model from a JSON configuration file.                               │
+│ register-help             Show help for model registration methods.                                      │
+│ distribute                Distribute jobs intelligently across multiple models.                          │
+│ squeeze                   Use all available free tiers and local models to process the task.             │
+│ job-stats                 Show job distribution statistics.                                              │
+│ reset-job-stats           Reset job distribution statistics.                                             │
+│ token-stats               Show detailed token usage statistics across models.                            │
+│ model-performance         Show comprehensive model performance statistics.                               │
+│ config                    Show current configuration.                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+### Provider Information
+```
+Provider Information
+
+╭──────────────────────────────────────────────── • OpenAI ────────────────────────────────────────────────╮
+│ OpenAI                                                                                                   │
+│ Individual model access with pay-per-use pricing                                                         │
+│                                                                                                          │
+│ 🌐 Website                                                                                               │
+│ 📚 API Docs                                                                                              │
+│ 💳 Subscription: Not Required                                                                            │
+│ 🆓 Free Tier: Available                                                                                  │
+│ 📦 Tier Type: Individual •                                                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────────────────── • Google Gemini ─────────────────────────────────────────────╮
+│ Google Gemini                                                                                            │
+│ Individual model access with generous free tier                                                          │
+│                                                                                                          │
+│ 🌐 Website                                                                                               │
+│ 📚 API Docs                                                                                              │
+│ 💳 Subscription: Not Required                                                                            │
+│ 🆓 Free Tier: Available                                                                                  │
+│ 📦 Tier Type: Individual •                                                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+### Model Library
+```
+                                               Model Library
+
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Provider    ┃ Model ID            ┃ Display Name        ┃ Tier  ┃ Type ┃ Tags                ┃ Active ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ Openai      │ gpt-4               │ GPT-4               │ Premium│ Chat │ reasoning,          │ Yes    │
+│             │                     │                     │       │      │ complex-tasks,      │        │
+│             │                     │                     │       │      │ function-calling    │        │
+│ Claude      │ claude-3-opus-2024… │ Claude 3 Opus       │ Premium│ Chat │ reasoning,          │ Yes    │
+│             │                     │                     │       │      │ analysis,           │        │
+│             │                     │                     │       │      │ long-context        │        │
+│ Gemini      │ gemini-pro          │ Gemini Pro          │ Standard│ Chat │ google, free-tier,  │ Yes    │
+│             │                     │                     │       │      │ general-purpose     │        │
+│ Llama       │ llama3.2:8b         │ Llama 3.2 8B        │ Free   │ Chat │ local, free,        │ Yes    │
+│             │                     │                     │       │      │ llama...            │        │
+└─────────────┴─────────────────────┴─────────────────────┴───────┴──────┴─────────────────────┴────────┘
+```
+
+### Token Statistics
+```
+Token Usage Statistics
+
+Overall Token Usage
+Total Tokens: 0
+Total Requests: 0
+Average Tokens per Request: 0.0
+
+Token Usage by Model
+┏━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┓
+┃ Model ┃ Total Tokens ┃ Input Tokens ┃ Output Tokens ┃ Avg/Request ┃ Requests ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━┩
+└───────┴──────────────┴──────────────┴───────────────┴─────────────┴──────────┘
+```
+
 ## Quick Start
 
 ### Installation
