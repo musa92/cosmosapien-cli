@@ -11,7 +11,8 @@ class LLaMA(BaseModel):
     """LLaMA model implementation using Ollama."""
     
     def __init__(self, api_key: str = "", base_url: Optional[str] = None, model: str = "llama2", **kwargs):
-        super().__init__(api_key, **kwargs)
+        # LLaMA/Ollama doesn't need API keys - it runs locally
+        super().__init__("", **kwargs)  # Pass empty API key
         self.model = model
         self.base_url = base_url or "http://localhost:11434"
     

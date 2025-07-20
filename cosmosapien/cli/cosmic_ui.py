@@ -19,6 +19,8 @@ from rich.box import ROUNDED
 from ..core.router import Router
 from ..core.config import ConfigManager
 from ..core.models import ChatMessage
+from ..core.local_manager import LocalModelManager
+from ..core.agent_system import AgentSystem, AgentRole
 from ..auth.manager import AuthManager
 
 
@@ -30,13 +32,15 @@ class CosmicUI:
         self.config_manager = ConfigManager()
         self.auth_manager = AuthManager(self.config_manager)
         self.router = Router(self.config_manager)
+        self.local_manager = LocalModelManager()
+        self.agent_system = AgentSystem(self.router, self.local_manager)
         
         # Clean cosmic elements
         self.cosmic_symbols = ["*", "•", "○", "●", "◇", "◆", "□", "■"]
         
         # Default open-source models (no API key required)
         self.default_models = {
-            "llama": "llama2",  # Local via Ollama
+            "llama": "dolphin-llama3:latest",  # More powerful local model
             "huggingface": "gpt2",  # Free tier
         }
         
@@ -140,15 +144,15 @@ class CosmicUI:
         """Get the best available open-source provider and model."""
         providers = self.auth_manager.list_providers()
         
-        # Priority order: llama (local), huggingface (free tier)
-        for provider_name in ["llama", "huggingface"]:
+        # Priority order: huggingface (free tier), llama (local)
+        for provider_name in ["huggingface", "llama"]:
             for provider in providers:
                 if provider["provider"] == provider_name:
                     if provider["logged_in"] or provider_name == "llama":  # llama doesn't need login
                         return provider_name, self.default_models.get(provider_name, "default")
         
         # Fallback to llama (local)
-        return "llama", "llama2"
+        return "llama", "codellama:latest"
     
     async def clean_chat(self, provider: Optional[str] = None, model: Optional[str] = None):
         """Start a clean chat session with open-source defaults."""

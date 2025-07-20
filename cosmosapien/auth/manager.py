@@ -2,6 +2,7 @@
 
 import getpass
 import keyring
+import webbrowser
 from typing import Optional
 from ..core.config import ConfigManager
 from ..core.provider_info import get_all_providers
@@ -17,6 +18,14 @@ class AuthManager:
     def login(self, provider: str, api_key: Optional[str] = None) -> bool:
         """Login to a provider by storing the API key securely."""
         try:
+            # Special handling for Hugging Face
+            if provider == "huggingface":
+                print("Opening Hugging Face login page...")
+                print("1. Go to https://huggingface.co/settings/tokens")
+                print("2. Create a new token with 'read' permissions")
+                print("3. Copy the token and paste it below")
+                webbrowser.open("https://huggingface.co/settings/tokens")
+            
             # Get API key from user if not provided
             if not api_key:
                 api_key = getpass.getpass(f"Enter API key for {provider}: ")
@@ -74,6 +83,10 @@ class AuthManager:
     
     def is_logged_in(self, provider: str) -> bool:
         """Check if user is logged in to a provider."""
+        # Local models don't need API keys
+        if provider in ["llama"]:
+            return True
+        
         api_key = self.get_api_key(provider)
         return api_key is not None and api_key.strip() != ""
     

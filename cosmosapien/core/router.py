@@ -2,6 +2,7 @@
 
 from typing import Dict, Any, List, Optional
 from .config import ConfigManager
+from .model_library import ModelLibrary
 from .models import BaseModel, ModelResponse, ChatMessage, model_registry
 
 
@@ -10,13 +11,18 @@ class Router:
     
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
+        self.model_library = ModelLibrary(config_manager)
     
     def get_model_instance(self, provider: str, model: str, **kwargs) -> BaseModel:
         """Get a model instance for the specified provider and model."""
         # Get provider configuration
         provider_config = self.config_manager.get_provider_config(provider)
-        if not provider_config or not provider_config.api_key:
-            raise ValueError(f"No API key configured for provider: {provider}")
+        
+        # Check if API key is required (local models don't need API keys)
+        local_providers = ["llama"]  # Add other local providers here
+        if provider not in local_providers:
+            if not provider_config or not provider_config.api_key:
+                raise ValueError(f"No API key configured for provider: {provider}")
         
         # Get model class from registry
         model_class = model_registry.get(provider)
@@ -24,9 +30,12 @@ class Router:
             raise ValueError(f"Unknown provider: {provider}")
         
         # Create model instance
+        api_key = provider_config.api_key if provider_config else ""
+        base_url = provider_config.base_url if provider_config else None
+        
         return model_class(
-            api_key=provider_config.api_key,
-            base_url=provider_config.base_url,
+            api_key=api_key,
+            base_url=base_url,
             model=model,
             **kwargs
         )
@@ -118,4 +127,13 @@ class Router:
             model_instance = self.get_model_instance(provider, "dummy")
             return model_instance.get_available_models()
         except Exception:
-            return [] 
+            return []
+    
+    def get_model_info(self, provider: str, model: str):
+        """Get model information from the library."""
+        model_id = f"{provider}:{model}"
+        return self.model_library.get_model(model_id)
+    
+    def list_library_models(self, provider: Optional[str] = None, active_only: bool = True):
+        """List models from the model library."""
+        return self.model_library.list_models(provider=provider, active_only=active_only) 

@@ -1,0 +1,35 @@
+{
+  "name": "my-custom-model",
+  "provider": "custom",
+  "model_id": "my-model-v1",
+  "display_name": "My Custom Model v1",
+  "description": "A custom model for specific use cases with advanced capabilities",
+  "model_type": "chat",
+  "tier": "standard",
+  "capabilities": {
+    "max_tokens": 4096,
+    "max_input_tokens": 8192,
+    "supports_streaming": true,
+    "supports_function_calling": true,
+    "supports_vision": false,
+    "supports_audio": false,
+    "supports_embeddings": false,
+    "context_window": 8192,
+    "training_data_cutoff": "2024-01"
+  },
+  "pricing": {
+    "input_cost_per_1k_tokens": 0.005,
+    "output_cost_per_1k_tokens": 0.01,
+    "free_tier_limit": 100,
+    "free_tier_reset_period": "monthly",
+    "currency": "USD"
+  },
+  "tags": [
+    "custom",
+    "specialized",
+    "advanced",
+    "example"
+  ],
+  "is_active": true,
+  "is_local": false
+} 

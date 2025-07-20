@@ -14,6 +14,15 @@ class ProviderConfig(BaseModel):
     models: Dict[str, str] = Field(default_factory=dict)
 
 
+class SmartRoutingConfig(BaseModel):
+    """Configuration for smart routing quotas."""
+    enabled: bool = True
+    prefer_local: bool = True
+    cost_threshold: float = 0.01  # Maximum cost per call before considering alternatives
+    free_tier_limits: Dict[str, Dict[str, int]] = Field(default_factory=dict)
+    custom_costs: Dict[str, Dict[str, float]] = Field(default_factory=dict)
+
+
 class Config(BaseModel):
     """Main configuration class."""
     default_provider: str = "openai"
@@ -22,6 +31,7 @@ class Config(BaseModel):
     memory_enabled: bool = True
     memory_path: str = "~/.cosmosapien/memory"
     plugins_path: str = "~/.cosmosapien/plugins"
+    smart_routing: SmartRoutingConfig = Field(default_factory=SmartRoutingConfig)
     
     class Config:
         extra = "allow"
@@ -78,4 +88,31 @@ class ConfigManager:
         """Set API key for a provider."""
         provider_config = self.get_provider_config(provider) or ProviderConfig()
         provider_config.api_key = api_key
-        self.set_provider_config(provider, provider_config) 
+        self.set_provider_config(provider, provider_config)
+    
+    def get_smart_routing_config(self) -> SmartRoutingConfig:
+        """Get smart routing configuration."""
+        config = self.load()
+        return config.smart_routing
+    
+    def set_smart_routing_config(self, smart_routing_config: SmartRoutingConfig) -> None:
+        """Set smart routing configuration."""
+        config = self.load()
+        config.smart_routing = smart_routing_config
+        self.save(config)
+    
+    def set_free_tier_limit(self, provider: str, model: str, limit: int) -> None:
+        """Set free tier limit for a specific provider/model."""
+        config = self.load()
+        if provider not in config.smart_routing.free_tier_limits:
+            config.smart_routing.free_tier_limits[provider] = {}
+        config.smart_routing.free_tier_limits[provider][model] = limit
+        self.save(config)
+    
+    def set_custom_cost(self, provider: str, model: str, cost: float) -> None:
+        """Set custom cost for a specific provider/model."""
+        config = self.load()
+        if provider not in config.smart_routing.custom_costs:
+            config.smart_routing.custom_costs[provider] = {}
+        config.smart_routing.custom_costs[provider][model] = cost
+        self.save(config) 
