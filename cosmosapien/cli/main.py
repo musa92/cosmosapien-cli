@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
+from rich.live import Live
 
 from ..auth.manager import AuthManager
 from ..core.agent_system import AgentRole, AgentSystem
@@ -2088,107 +2089,96 @@ def register_help():
 
 @app.command()
 def distribute(
-    prompt: str = typer.Argument(..., help="Prompt to distribute"),
-    job_type: str = typer.Option(
-        "auto",
-        "--type",
-        help="Job type: auto, single, parallel, pipeline, load_balanced, fallback",
-    ),
+    prompt: str = typer.Argument(..., help="Prompt with multiple sub-questions or a complex question to distribute by model confidence."),
     models: str = typer.Option(
         None, "--models", help="Comma-separated list of models (provider:model)"
     ),
     priority: int = typer.Option(3, "--priority", help="Job priority (1-5, 5=highest)"),
     timeout: int = typer.Option(30, "--timeout", help="Timeout in seconds"),
-    explain: bool = typer.Option(
-        False, "--explain", help="Show distribution decision without execution"
-    ),
 ):
-    """Distribute jobs intelligently across multiple models."""
-    try:
-        from cosmosapien.core.job_distributor import JobDistributor, JobType
+    """Distribute sub-questions to models by confidence and show live progress."""
+    if not ensure_ollama_ready():
+        print("Local model setup was not completed. Exiting.")
+        return
+    import re
+    import asyncio
+    from rich.live import Live
+    from rich.table import Table
+    from rich.panel import Panel
 
-        # Initialize job distributor
-        job_distributor = JobDistributor(config_manager, model_library, local_manager)
-
-        # Parse job type
-        job_type_map = {
-            "auto": JobType.LOAD_BALANCED,  # Default to auto distribution
-            "single": JobType.SINGLE_TASK,
-            "parallel": JobType.PARALLEL_TASK,
-            "pipeline": JobType.PIPELINE_TASK,
-            "load_balanced": JobType.LOAD_BALANCED,
-            "fallback": JobType.FALLBACK_CHAIN,
-        }
-
-        if job_type not in job_type_map:
-            console.print("[red]Invalid job type: {job_type}[/red]")
-            console.print("Available types: {', '.join(job_type_map.keys())}")
-            return
-
-        # Parse models
-        model_list = None
-        if models:
-            model_list = [m.strip() for m in models.split(",")]
-
-        # Create job request
-        job_request = job_distributor.create_job(
-            prompt=prompt,
-            job_type=job_type_map[job_type],
-            models=model_list,
-            priority=priority,
-            timeout=timeout,
-        )
-
-        if explain:
-            # Show distribution decision
-            console.print("[bold]Job Distribution Decision[/bold]")
-            console.print("Job ID: {job_request.job_id}")
-            console.print("Job Type: {job_request.job_type.value}")
-            console.print(
-                "Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
-            )
-            console.print("Priority: {job_request.priority}")
-            console.print("Timeout: {job_request.timeout}s")
-
-            # Show model status
-            stats = job_distributor.get_distribution_stats()
-            console.print("\n[bold]Model Status[/bold]")
-            for model_key, status in stats["model_status"].items():
-                console.print(
-                    "  {model_key}: Load={status['current_load']}, Success={status['success_rate']:.2f}, Response={status['avg_response_time']:.2f}s"
-                )
-
-            return
-
-        # Execute job
-        console.print("[bold]Executing job: {job_request.job_id}[/bold]")
-        console.print("Type: {job_request.job_type.value}")
-        console.print(
-            "Models: {', '.join(job_request.models) if job_request.models else 'Auto-selected'}"
-        )
-
-        result = job_distributor.distribute_job(job_request)
-
-        # Display result
-        if result.success:
-            console.print("\n[green]Job completed successfully![/green]")
-            console.print("Model used: {result.model_used}")
-            console.print("Execution time: {result.execution_time:.2f}s")
-            console.print("Tokens used: {result.tokens_used}")
-
-            console.print("\n[bold]Response:[/bold]")
-            console.print(result.response)
+    # Parse models
+    if models:
+        model_list = [m.strip() for m in models.split(",") if m.strip()]
+    else:
+        # Use all available local models if present
+        local_models = model_library.get_local_models()
+        if local_models:
+            model_list = [f"{m.provider}:{m.model_id}" for m in local_models]
         else:
-            console.print("\n[red]Job failed![/red]")
-            console.print("Error: {result.error}")
-            console.print("Model attempted: {result.model_used}")
-            console.print("Execution time: {result.execution_time:.2f}s")
+            # Fallback to 2-3 open-source models for demonstration
+            model_list = ["llama:dolphin-llama3:latest", "huggingface:gpt2"]
 
-        # Save stats
-        job_distributor.save_stats()
+    # Split prompt into sub-questions (same as JobDistributor)
+    sub_questions = re.split(r'\d+\. |\n|\?|\.', prompt)
+    sub_questions = [q.strip() for q in sub_questions if q.strip()]
+    if not sub_questions:
+        sub_questions = [prompt]
 
-    except Exception:
-        console.print("[red]Error during job distribution: {str(e)}[/red]")
+    # Sort models by confidence (success_rate) -- for now, just use order
+    # TODO: Optionally, fetch model confidence from JobDistributor/model_library
+    sorted_models = model_list
+
+    # Prepare table rows: [Question, Model, Status, Answer]
+    table_rows = []
+    for i, subq in enumerate(sub_questions):
+        model_key = sorted_models[i % len(sorted_models)]
+        table_rows.append([f"Q{i+1}", model_key, "Thinking...", ""])
+
+    def build_table():
+        table = Table(title="Distribute Progress", show_lines=True)
+        table.add_column("Question", style="cyan", no_wrap=True)
+        table.add_column("Model", style="magenta")
+        table.add_column("Status", style="yellow")
+        table.add_column("Answer", style="green")
+        for row in table_rows:
+            table.add_row(*row)
+        return table
+
+    async def get_answer(idx, subq, model_key):
+        provider, model = model_key.split(":", 1)
+        try:
+            model_instance = router.get_model_instance(provider, model)
+            # Show thinking
+            table_rows[idx][2] = "Thinking..."
+            # Await the model's generate method
+            response = await model_instance.generate(subq)
+            table_rows[idx][2] = "Done"
+            table_rows[idx][3] = response.content[:60] + ("..." if len(response.content) > 60 else "")
+            return (idx, subq, model_key, response.content)
+        except Exception as e:
+            table_rows[idx][2] = "Error"
+            table_rows[idx][3] = str(e)
+            return (idx, subq, model_key, f"Error: {str(e)}")
+
+    async def _distribute():
+        results = [None] * len(sub_questions)
+        tasks = [get_answer(i, subq, sorted_models[i % len(sorted_models)]) for i, subq in enumerate(sub_questions)]
+        with Live(build_table(), refresh_per_second=4, console=console) as live:
+            for coro in asyncio.as_completed(tasks):
+                result = await coro
+                idx = result[0]
+                # Update table as each answer comes in
+                live.update(build_table())
+                results[idx] = result
+        # Print detailed results
+        combined = []
+        for idx, subq, model_key, answer in results:
+            console.print(Panel(answer, title=f"Q{idx+1} ({model_key})", border_style="blue"))
+            combined.append(f"Q: {subq}\nA: {answer}")
+        console.print("[green]Combined Answer:[/green]")
+        console.print("\n\n".join(combined))
+
+    asyncio.run(_distribute())
 
 
 @app.command()
@@ -2553,6 +2543,248 @@ def config():
                 for model, cost in models.items():
                     console.print("  • {provider}/{model}: ${cost:.4f}/call")
 
+
+@app.command()
+def orchestrate(
+    prompt: str = typer.Argument(..., help="A complex question to be decomposed, distributed, and synthesized by models."),
+    planner_model: str = typer.Option(None, "--planner", help="Model to use for decomposition (provider:model), defaults to best local model"),
+    synthesizer_model: str = typer.Option(None, "--synthesizer", help="Model to use for synthesis/paraphrase, defaults to best local model"),
+):
+    """Meta-agent: Use a model to decompose, distribute, and synthesize answers from a single complex question."""
+    if not ensure_ollama_ready():
+        print("Local model setup was not completed. Exiting.")
+        return
+    import asyncio
+    from rich.live import Live
+    from rich.table import Table
+    from rich.panel import Panel
+    import json
+    import re
+
+    # Only use these models
+    preferred_models = [
+        "llama:llama3.2:3b",
+        "llama:llama2:latest",
+        "llama:codellama:13b",
+        "llama:mixtral:8x7b",
+        "llama:mistral:7b",
+    ]
+
+    # Helper: get best available preferred local model
+    def get_best_local_model():
+        local_models = model_library.get_local_models()
+        available = [f"{m.provider}:{m.model_id}" for m in local_models]
+        for m in preferred_models:
+            if m in available:
+                return m
+        raise RuntimeError("No preferred local models available. Please install and activate at least one of: " + ", ".join(preferred_models))
+
+    async def get_plan(prompt, planner_model, available_models):
+        provider, model = planner_model.split(":", 1)
+        planner = router.get_model_instance(provider, model)
+        available_models_str = ", ".join(available_models)
+        planner_prompt = (
+            "You are an expert AI task planner. Given the following complex question, break it down into a set of sub-tasks. "
+            "For each sub-task, assign the most suitable model from this list: [" + available_models_str + "] (choose one per sub-task). "
+            "Return your answer as a JSON array, with each item like: {\"subtask\": \"...\", \"model\": \"...\"}. "
+            "Do not include any explanation or text outside the JSON array.\n\n"
+            "Question: " + prompt
+        )
+        response = await planner.generate(planner_prompt)
+        # Try to extract JSON from the response
+        try:
+            json_start = response.content.find("[")
+            json_end = response.content.rfind("]") + 1
+            plan_json = response.content[json_start:json_end]
+            plan = json.loads(plan_json)
+            return plan
+        except Exception:
+            # Fallback: try to parse a numbered list with model assignments
+            text = response.content.strip()
+            pattern = r"\d+\.\s*(.+?):?\n?\s*\* Model: ([^\n]+)"
+            matches = re.findall(pattern, text)
+            if matches:
+                plan = [{"subtask": subtask.strip(), "model": model.strip()} for subtask, model in matches]
+                return plan
+            # If still nothing, show warning and output
+            console.print("[yellow]Planner model did not return valid JSON or a parseable list. Raw output:[/yellow]")
+            console.print(Panel(text, title="Planner Output", border_style="red"))
+            raise RuntimeError("Planner model did not return valid JSON or a parseable list.")
+
+    async def get_answer(idx, subtask, model_key):
+        provider, model = model_key.split(":", 1)
+        try:
+            model_instance = router.get_model_instance(provider, model)
+            table_rows[idx][2] = "Thinking..."
+            response = await model_instance.generate(subtask)
+            table_rows[idx][2] = "Done"
+            table_rows[idx][3] = response.content[:60] + ("..." if len(response.content) > 60 else "")
+            return (idx, subtask, model_key, response.content)
+        except Exception as e:
+            table_rows[idx][2] = "Error"
+            table_rows[idx][3] = str(e)
+            return (idx, subtask, model_key, f"Error: {str(e)}")
+
+    def build_table():
+        table = Table(title="Meta-Agent Progress", show_lines=True)
+        table.add_column("Sub-Task", style="cyan", no_wrap=True)
+        table.add_column("Model", style="magenta")
+        table.add_column("Status", style="yellow")
+        table.add_column("Answer", style="green")
+        for row in table_rows:
+            table.add_row(*row)
+        return table
+
+    async def _orchestrate():
+        local_models = model_library.get_local_models()
+        available_model_keys = [f"{m.provider}:{m.model_id}" for m in local_models if f"{m.provider}:{m.model_id}" in preferred_models]
+        if not available_model_keys:
+            console.print("[red]No preferred local models available. Please install and activate at least one of: " + ", ".join(preferred_models) + "[/red]")
+            return
+        planner_key = planner_model or get_best_local_model()
+        synthesizer_key = synthesizer_model or get_best_local_model()
+        console.print(f"[bold blue]Using planner:[/bold blue] {planner_key}")
+        console.print(f"[bold blue]Using synthesizer:[/bold blue] {synthesizer_key}")
+        console.print("[bold blue]Decomposing and assigning tasks using planner model...[/bold blue]")
+        plan = await get_plan(prompt, planner_key, available_model_keys)
+        if not plan or not isinstance(plan, list):
+            console.print("[red]Planner did not return a valid plan.[/red]")
+            return
+        # Print breakdown and assignment before running models
+        console.print("\n[bold]Breakdown of sub-tasks and model assignments:[/bold]")
+        for i, item in enumerate(plan):
+            console.print(f"  [cyan]Task {i+1}:[/cyan] {item['subtask']} [magenta]({item['model']})[/magenta] - Asking model...")
+        # Now proceed to live table
+        global table_rows
+        table_rows = []
+        for i, item in enumerate(plan):
+            table_rows.append([f"Task {i+1}", item['model'], "Thinking...", ""])
+        tasks = [get_answer(i, item['subtask'], item['model']) for i, item in enumerate(plan)]
+        results = [None] * len(plan)
+        with Live(build_table(), refresh_per_second=4, console=console) as live:
+            for coro in asyncio.as_completed(tasks):
+                result = await coro
+                idx = result[0]
+                live.update(build_table())
+                results[idx] = result
+        answers_for_summary = "\n".join([
+            f"Task: {plan[idx]['subtask']}\nAnswer: {answer}" for idx, _, _, answer in results
+        ])
+        provider, model = synthesizer_key.split(":", 1)
+        synthesizer = router.get_model_instance(provider, model)
+        summary_prompt = (
+            "Given these answers to sub-tasks, combine and paraphrase them into a single, clear, and concise answer to the original question.\n\n" + answers_for_summary
+        )
+        console.print("[bold blue]Synthesizing final answer using synthesizer model...[/bold blue]")
+        summary_response = await synthesizer.generate(summary_prompt)
+        for idx, subtask, model_key, answer in results:
+            console.print(Panel(answer, title=f"Task {idx+1} ({model_key})", border_style="blue"))
+        console.print("[green]Final Paraphrased Answer:[/green]")
+        console.print(Panel(summary_response.content, title="Meta-Agent Synthesis", border_style="green"))
+
+    asyncio.run(_orchestrate())
+
+
+def ensure_ollama_ready():
+    """Ensure Ollama is installed, running, and at least one model is available."""
+    import platform
+    import subprocess
+    from rich.prompt import Confirm
+    from time import sleep
+
+    # Check if Ollama is installed
+    def is_ollama_installed():
+        try:
+            result = subprocess.run(["ollama", "--version"], capture_output=True, text=True)
+            return result.returncode == 0
+        except FileNotFoundError:
+            return False
+
+    # Check if Ollama is running
+    def is_ollama_running():
+        try:
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
+            return result.returncode == 0
+        except Exception:
+            return False
+
+    # Install Ollama
+    def install_ollama():
+        system = platform.system().lower()
+        if system == "darwin":
+            print("Installing Ollama for macOS...")
+            subprocess.run(["curl", "-fsSL", "https://ollama.ai/install.sh", "|", "sh"], shell=True)
+        elif system == "linux":
+            print("Installing Ollama for Linux...")
+            subprocess.run(["curl", "-fsSL", "https://ollama.ai/install.sh", "|", "sh"], shell=True)
+        elif system == "windows":
+            print("Please install Ollama manually from https://ollama.com/download/windows")
+            return False
+        else:
+            print(f"Unsupported OS: {system}")
+            return False
+        return is_ollama_installed()
+
+    # Start Ollama
+    def start_ollama():
+        system = platform.system().lower()
+        if system == "darwin":
+            subprocess.run(["open", "-a", "Ollama"])
+        elif system == "linux":
+            subprocess.run(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        elif system == "windows":
+            print("Please start Ollama manually from the Start menu.")
+            return False
+        sleep(2)
+        return is_ollama_running()
+
+    # Check for at least one model
+    def has_local_models():
+        try:
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
+            return any(line.strip() for line in result.stdout.splitlines()[1:])
+        except Exception:
+            return False
+
+    # Pull a recommended model
+    def pull_default_model():
+        print("Pulling llama3.2:8b (recommended local model)...")
+        subprocess.run(["ollama", "pull", "llama3.2:8b"])
+        sleep(2)
+        return has_local_models()
+
+    # Main logic
+    if not is_ollama_installed() or not is_ollama_running():
+        print("Ollama (for local models) is not installed or running.")
+        if not Confirm.ask("Would you like to install and start it now?", default=True):
+            print("Skipping local model setup.")
+            return False
+        if not is_ollama_installed():
+            if not install_ollama():
+                print("Failed to install Ollama. Please install it manually from https://ollama.com/.")
+                return False
+        if not is_ollama_running():
+            if not start_ollama():
+                print("Failed to start Ollama. Please start it manually.")
+                return False
+    if not has_local_models():
+        print("No local models found in Ollama.")
+        if Confirm.ask("Would you like to pull llama3.2:8b now?", default=True):
+            if not pull_default_model():
+                print("Failed to pull model. Please pull a model manually with 'ollama pull llama3.2:8b'.")
+                return False
+        else:
+            print("No local models available. Skipping local model setup.")
+            return False
+    print("Ollama is ready with at least one local model.")
+    return True
+
+
+# Import and register the list_local_models command from local_models.py
+from .local_models import list_local_models
+app.command()(list_local_models)
+
+# Remove any fallback definition of list_local_models from main.py if present.
 
 if __name__ == "__main__":
     app() 

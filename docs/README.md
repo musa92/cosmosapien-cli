@@ -207,3 +207,49 @@ docs/
 **Happy coding with Cosmosapien CLI!**
 
 For questions about this documentation, please open an issue or start a discussion on GitHub. 
+
+# Provider Information
+
+## Local Models (Ollama)
+You can run open-source models like Llama, Mixtral, Mistral, and more locally using [Ollama](https://ollama.com/). No API key is required. To get started:
+
+1. Install Ollama from https://ollama.com/
+2. Start Ollama: `ollama serve`
+3. Pull a model: `ollama pull llama3.2:8b`
+
+## Cloud Providers (OpenAI, Gemini, Claude, Perplexity, etc.)
+Sign up for an API key at the provider's website:
+- [OpenAI](https://platform.openai.com/signup)
+- [Google Gemini](https://ai.google.dev/)
+- [Anthropic Claude](https://console.anthropic.com/)
+- [Perplexity](https://www.perplexity.ai/)
+
+Store your API key in an environment variable or in the `.cosmosrc` config file.
+
+# API Setup
+
+## Environment Variable
+Add to your shell profile:
+```
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="..."
+```
+
+## .cosmosrc Config File
+Add to `~/.cosmosrc`:
+```
+[providers.openai]
+api_key = "sk-..."
+
+[providers.gemini]
+api_key = "..."
+```
+
+# Quick Start
+
+1. Install Cosmosapien CLI and (optionally) Ollama.
+2. Set up your API keys if needed.
+3. Run:
+   ```sh
+   cosmo ask "What is the capital of France?"
+   ``` 

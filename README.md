@@ -84,51 +84,58 @@ Cosmosapien CLI - A modular command-line tool for multiple LLM providers
 ```
 
 ### Provider Information
+
+## Local Models (Ollama)
+You can run powerful open-source models like Llama, Mixtral, Mistral, and more locally using [Ollama](https://ollama.com/). No API key is required for local models. To get started:
+
+1. Install Ollama from https://ollama.com/ (or use `curl -fsSL https://ollama.ai/install.sh | sh` on macOS/Linux).
+2. Start the Ollama service: `ollama serve`
+3. Pull a model, e.g.: `ollama pull llama3.2:8b`
+
+The Cosmosapien CLI will automatically detect and use your local models.
+
+## OpenAI, Gemini, Claude, Perplexity, etc.
+To use cloud models, you need to sign up for an API key at the provider's website:
+
+- [OpenAI](https://platform.openai.com/signup)
+- [Google Gemini](https://ai.google.dev/)
+- [Anthropic Claude](https://console.anthropic.com/)
+- [Perplexity](https://www.perplexity.ai/)
+
+Once you have your API key, you can store it securely in an environment variable or in the `.cosmosrc` config file.
+
+# API Setup
+
+## Option 1: Environment Variable
+Set your API key in your shell profile (e.g., `.zshrc`, `.bashrc`):
+
 ```
-Provider Information
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="..."
+```
 
-╭──────────────────────────────────────────────── • OpenAI ────────────────────────────────────────────────╮
-│ OpenAI                                                                                                   │
-│ Individual model access with pay-per-use pricing                                                         │
-│                                                                                                          │
-│ 🌐 Website                                                                                               │
-│ 📚 API Docs                                                                                              │
-│ 💳 Subscription: Not Required                                                                            │
-│ 🆓 Free Tier: Available                                                                                  │
-│ 📦 Tier Type: Individual •                                                                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+## Option 2: .cosmosrc Config File
+Edit (or create) `~/.cosmosrc` and add:
 
-╭──────────────────────────────────────────── • Google Gemini ─────────────────────────────────────────────╮
-│ Google Gemini                                                                                            │
-│ Individual model access with generous free tier                                                          │
-│                                                                                                          │
-│ 🌐 Website                                                                                               │
-│ 📚 API Docs                                                                                              │
-│ 💳 Subscription: Not Required                                                                            │
-│ 🆓 Free Tier: Available                                                                                  │
-│ 📦 Tier Type: Individual •                                                                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[providers.openai]
+api_key = "sk-..."
+
+[providers.gemini]
+api_key = "..."
 ```
 
 ### Model Library
-```
-                                               Model Library
 
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Provider    ┃ Model ID            ┃ Display Name        ┃ Tier  ┃ Type ┃ Tags                ┃ Active ┃
-┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ Openai      │ gpt-4               │ GPT-4               │ Premium│ Chat │ reasoning,          │ Yes    │
-│             │                     │                     │       │      │ complex-tasks,      │        │
-│             │                     │                     │       │      │ function-calling    │        │
-│ Claude      │ claude-3-opus-2024… │ Claude 3 Opus       │ Premium│ Chat │ reasoning,          │ Yes    │
-│             │                     │                     │       │      │ analysis,           │        │
-│             │                     │                     │       │      │ long-context        │        │
-│ Gemini      │ gemini-pro          │ Gemini Pro          │ Standard│ Chat │ google, free-tier,  │ Yes    │
-│             │                     │                     │       │      │ general-purpose     │        │
-│ Llama       │ llama3.2:8b         │ Llama 3.2 8B        │ Free   │ Chat │ local, free,        │ Yes    │
-│             │                     │                     │       │      │ llama...            │        │
-└─────────────┴─────────────────────┴─────────────────────┴───────┴──────┴─────────────────────┴────────┘
-```
+| Provider | Model ID         | Display Name   | Tier    | Type | Tags                | Active |
+|----------|------------------|---------------|---------|------|---------------------|--------|
+| OpenAI   | gpt-4            | GPT-4         | Premium | Chat | reasoning, complex-tasks, function-calling | Yes |
+| Claude   | claude-3-opus... | Claude 3 Opus | Premium | Chat | reasoning, analysis, long-context | Yes |
+| Gemini   | gemini-pro       | Gemini Pro    | Standard| Chat | google, free-tier, general-purpose | Yes |
+| Llama    | llama3.2:8b      | Llama 3.2 8B  | Free    | Chat | local, free, llama  | Yes |
+| ...      | ...              | ...           | ...     | ...  | ...                 | ...    |
+
+See the [Ollama library](https://ollama.com/library) for more local models you can use.
 
 ### Token Statistics
 ```
@@ -187,6 +194,26 @@ cosmo debate "Should AI be regulated?" --models openai:gpt-4 claude:claude-3-son
 cosmo register-template gpt4
 cosmo register-quick myprovider mymodel --tier premium
 ```
+
+## Multi-Model Orchestration
+
+Cosmosapien CLI supports advanced workflows where multiple models can collaborate or solve complex tasks in steps. Use the following commands for multi-model, multi-step orchestration:
+
+### Collaborate Command
+Run multiple models as agents that can collaborate on a task:
+
+```sh
+cosmo collaborate "Summarize this article, then ask a follow-up question and answer it using another model."
+```
+
+### Solve Command
+Break down a complex problem into subtasks and assign each to a different model:
+
+```sh
+cosmo solve "Translate this article to French, then summarize the translation."
+```
+
+You can customize your prompt to describe the workflow you want, such as dividing jobs, chaining results, or having models ask each other questions.
 
 ## Project Structure
 
