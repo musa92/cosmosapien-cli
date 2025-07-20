@@ -1,7 +1,6 @@
 """Hugging Face model implementation."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import httpx
 
@@ -23,7 +22,7 @@ class HuggingFace(BaseModel):
         self.base_url = base_url or "https://api-inference.huggingface.co"
         self.client = httpx.AsyncClient(
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": "Bearer {api_key}",
                 "Content-Type": "application/json",
             }
         )
@@ -47,7 +46,7 @@ class HuggingFace(BaseModel):
             }
 
             response = await self.client.post(
-                f"{self.base_url}/models/{self.model}", json=payload
+                "{self.base_url}/models/{self.model}", json=payload
             )
             response.raise_for_status()
             data = response.json()
@@ -57,7 +56,7 @@ class HuggingFace(BaseModel):
                 content = data[0].get("generated_text", "")
                 # Remove the original prompt from the response
                 if content.startswith(prompt):
-                    content = content[len(prompt) :].strip()
+                    content = content[len(prompt):].strip()
             elif isinstance(data, dict):
                 content = data.get("generated_text", str(data))
             else:
@@ -74,8 +73,8 @@ class HuggingFace(BaseModel):
                 },
                 metadata={"model_id": self.model, "response_type": "generated_text"},
             )
-        except Exception as e:
-            raise Exception(f"Hugging Face API error: {str(e)}")
+        except Exception:
+            raise Exception("Hugging Face API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from Hugging Face."""
@@ -85,8 +84,8 @@ class HuggingFace(BaseModel):
 
             # Use the generate method for chat
             return await self.generate(prompt, **kwargs)
-        except Exception as e:
-            raise Exception(f"Hugging Face API error: {str(e)}")
+        except Exception:
+            raise Exception("Hugging Face API error: {str(e)}")
 
     def _format_chat_messages(self, messages: List[ChatMessage]) -> str:
         """Format chat messages into a single prompt string."""
@@ -94,11 +93,11 @@ class HuggingFace(BaseModel):
 
         for msg in messages:
             if msg.role == "system":
-                formatted_messages.append(f"System: {msg.content}")
+                formatted_messages.append("System: {msg.content}")
             elif msg.role == "user":
-                formatted_messages.append(f"User: {msg.content}")
+                formatted_messages.append("User: {msg.content}")
             elif msg.role == "assistant":
-                formatted_messages.append(f"Assistant: {msg.content}")
+                formatted_messages.append("Assistant: {msg.content}")
 
         return "\n".join(formatted_messages) + "\nAssistant:"
 

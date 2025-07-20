@@ -1,12 +1,11 @@
 """Multi-agent system for coordinating AI models."""
 
-import asyncio
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from .local_manager import LocalModelManager
-from .models import ChatMessage, ModelResponse
+from .models import ChatMessage
 from .router import Router
 
 
@@ -372,13 +371,13 @@ class AgentSystem:
                 # Add agent response to history
                 self.conversation_history.append(
                     ChatMessage(
-                        role="assistant", content=f"[{agent.name}]: {response.content}"
+                        role="assistant", content="[{agent.name}]: {response.content}"
                     )
                 )
 
-            except Exception as e:
+            except Exception:
                 responses[agent.name] = {
-                    "content": f"Error: {str(e)}",
+                    "content": "Error: {str(e)}",
                     "role": agent.role.value,
                     "capabilities": agent.capabilities,
                     "model": agent.model,
@@ -403,7 +402,7 @@ class AgentSystem:
         for agent_name, response in responses.items():
             if not response.get("error"):
                 summary_prompt += (
-                    f"{agent_name} ({response['role']}): {response['content']}\n\n"
+                    "{agent_name} ({response['role']}): {response['content']}\n\n"
                 )
 
         try:
@@ -420,7 +419,7 @@ class AgentSystem:
             pass
 
         # Fallback summary
-        return f"Generated responses from {len(responses)} agents."
+        return "Generated responses from {len(responses)} agents."
 
     async def _generate_recommendations(
         self, user_message: str, responses: Dict[str, Any]
@@ -463,7 +462,6 @@ class AgentSystem:
             raise ValueError("Need at least 2 agents for a debate")
 
         debate_history = []
-        current_topic = topic
 
         for round_num in range(num_rounds):
             round_responses = {}
@@ -471,7 +469,7 @@ class AgentSystem:
             for agent in agents:
                 try:
                     # Create debate prompt
-                    debate_prompt = f"""
+                    debate_prompt = """
 Topic: {current_topic}
 
 Previous responses:
@@ -499,16 +497,15 @@ Please provide your perspective on this topic, considering the previous response
                         }
                     )
 
-                except Exception as e:
+                except Exception:
                     round_responses[agent.name] = {
-                        "content": f"Error: {str(e)}",
+                        "content": "Error: {str(e)}",
                         "role": agent.role.value,
                         "round": round_num + 1,
                         "error": True,
                     }
 
             # Update topic for next round
-            current_topic = f"{topic} (Round {round_num + 2})"
 
         return debate_history
 
@@ -520,7 +517,7 @@ Please provide your perspective on this topic, considering the previous response
         formatted = ""
         for entry in history[-6:]:  # Last 6 responses
             formatted += (
-                f"{entry['agent']} (Round {entry['round']}): {entry['content']}\n\n"
+                "{entry['agent']} (Round {entry['round']}): {entry['content']}\n\n"
             )
 
         return formatted
@@ -540,7 +537,7 @@ Please provide your perspective on this topic, considering the previous response
             for agent in agents:
                 try:
                     response = await self.router.generate(
-                        prompt=f"Solve this component of the problem: {component}",
+                        prompt="Solve this component of the problem: {component}",
                         provider=agent.provider,
                         model=agent.model,
                     )
@@ -551,11 +548,11 @@ Please provide your perspective on this topic, considering the previous response
                             "role": agent.role.value,
                         }
                     )
-                except Exception as e:
+                except Exception:
                     component_solutions.append(
                         {
                             "agent": agent.name,
-                            "solution": f"Error: {str(e)}",
+                            "solution": "Error: {str(e)}",
                             "role": agent.role.value,
                             "error": True,
                         }
@@ -619,18 +616,18 @@ Please provide your perspective on this topic, considering the previous response
         self, problem: str, solutions: Dict[str, List[Dict[str, Any]]]
     ) -> str:
         """Synthesize individual solutions into a final solution."""
-        synthesis_prompt = f"""
+        synthesis_prompt = """
 Original Problem: {problem}
 
 Component Solutions:
 """
 
         for component, component_solutions in solutions.items():
-            synthesis_prompt += f"\n{component.upper()}:\n"
+            synthesis_prompt += "\n{component.upper()}:\n"
             for solution in component_solutions:
                 if not solution.get("error"):
                     synthesis_prompt += (
-                        f"- {solution['agent']}: {solution['solution']}\n"
+                        "- {solution['agent']}: {solution['solution']}\n"
                     )
 
         synthesis_prompt += (

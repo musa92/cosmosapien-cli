@@ -1,10 +1,9 @@
 """Base model classes and response types."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ModelResponse(BaseModel):
@@ -35,17 +34,14 @@ class BaseModel(ABC):
     @abstractmethod
     async def generate(self, prompt: str, **kwargs) -> ModelResponse:
         """Generate a response from the model."""
-        pass
 
     @abstractmethod
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a response in chat format."""
-        pass
 
     @abstractmethod
     def get_available_models(self) -> List[str]:
         """Get list of available models for this provider."""
-        pass
 
 
 class ModelRegistry:

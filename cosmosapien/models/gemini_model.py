@@ -1,7 +1,7 @@
 """Google Gemini model implementation."""
 
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import google.generativeai as genai
 
@@ -54,8 +54,8 @@ class Gemini(BaseModel):
                     ),
                 },
             )
-        except Exception as e:
-            raise Exception(f"Gemini API error: {str(e)}")
+        except Exception:
+            raise Exception("Gemini API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from Gemini."""
@@ -103,8 +103,8 @@ class Gemini(BaseModel):
                 )
             else:
                 raise ValueError("Last message must be from user")
-        except Exception as e:
-            raise Exception(f"Gemini API error: {str(e)}")
+        except Exception:
+            raise Exception("Gemini API error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available Gemini models."""

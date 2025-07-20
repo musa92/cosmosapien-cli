@@ -1,7 +1,6 @@
 """Claude (Anthropic) model implementation."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from anthropic import AsyncAnthropic
 
@@ -49,8 +48,8 @@ class Claude(BaseModel):
                     "stop_sequence": response.stop_sequence,
                 },
             )
-        except Exception as e:
-            raise Exception(f"Claude API error: {str(e)}")
+        except Exception:
+            raise Exception("Claude API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from Claude."""
@@ -89,8 +88,8 @@ class Claude(BaseModel):
                     "stop_sequence": response.stop_sequence,
                 },
             )
-        except Exception as e:
-            raise Exception(f"Claude API error: {str(e)}")
+        except Exception:
+            raise Exception("Claude API error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available Claude models."""

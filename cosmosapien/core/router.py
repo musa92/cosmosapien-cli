@@ -1,6 +1,6 @@
 """Router for delegating requests to appropriate models."""
 
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from .config import ConfigManager
 from .model_library import ModelLibrary
@@ -23,12 +23,12 @@ class Router:
         local_providers = ["llama"]  # Add other local providers here
         if provider not in local_providers:
             if not provider_config or not provider_config.api_key:
-                raise ValueError(f"No API key configured for provider: {provider}")
+                raise ValueError("No API key configured for provider: {provider}")
 
         # Get model class from registry
         model_class = model_registry.get(provider)
         if not model_class:
-            raise ValueError(f"Unknown provider: {provider}")
+            raise ValueError("Unknown provider: {provider}")
 
         # Create model instance
         api_key = provider_config.api_key if provider_config else ""
@@ -100,7 +100,7 @@ class Router:
                 round_responses.append(response)
 
                 # Add model's response to the prompt for next round
-                current_prompt += f"\n\n{model.upper()}: {response.content}"
+                current_prompt += "\n\n{model.upper()}: {response.content}"
 
             responses.extend(round_responses)
 
@@ -120,7 +120,7 @@ class Router:
 
     def get_model_info(self, provider: str, model: str):
         """Get model information from the library."""
-        model_id = f"{provider}:{model}"
+        model_id = "{provider}:{model}"
         return self.model_library.get_model(model_id)
 
     def list_library_models(

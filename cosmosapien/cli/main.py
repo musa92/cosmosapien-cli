@@ -1029,9 +1029,7 @@ def usage():
 
     # Show summary
     console.print("[bold]Total Calls:[/bold] {usage_summary['total_calls']}")
-    console.print(
-        "[bold]Estimated Cost:[/bold] ${usage_summary['estimated_cost']:.4f}"
-    )
+    console.print("[bold]Estimated Cost:[/bold] ${usage_summary['estimated_cost']:.4f}")
     console.print()
 
     # Show provider details
@@ -2270,9 +2268,7 @@ def squeeze(
             return
 
         # Execute with free tier distribution
-        console.print(
-            "[bold]Squeezing across {len(free_models)} free models...[/bold]"
-        )
+        console.print("[bold]Squeezing across {len(free_models)} free models...[/bold]")
         console.print("Models: {', '.join(free_models)}")
 
         result = job_distributor.distribute_job(job_request)

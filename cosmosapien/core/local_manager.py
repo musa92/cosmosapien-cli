@@ -1,13 +1,10 @@
 """Local model manager for detecting and managing local AI model runners."""
 
 import asyncio
-import os
 import platform
 import subprocess
-import sys
-import webbrowser
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 
 class LocalModelManager:
@@ -45,7 +42,7 @@ class LocalModelManager:
     def detect_vllm(self) -> bool:
         """Check if vLLM is available."""
         try:
-            import vllm
+            pass
 
             return True
         except ImportError:
@@ -128,8 +125,8 @@ class LocalModelManager:
                 )
                 return result.returncode == 0
 
-        except Exception as e:
-            print(f"Error installing Ollama: {e}")
+        except Exception:
+            print("Error installing Ollama: {e}")
             return False
 
         return False
@@ -153,8 +150,8 @@ class LocalModelManager:
             # Test if it's running
             return self.detect_ollama()
 
-        except Exception as e:
-            print(f"Error starting Ollama: {e}")
+        except Exception:
+            print("Error starting Ollama: {e}")
             return False
 
     def get_available_models(self, runner: str) -> List[str]:
@@ -298,10 +295,10 @@ class LocalModelManager:
 
         if not instructions:
             return (
-                f"No installation instructions available for {runner} on {self.system}"
+                "No installation instructions available for {runner} on {self.system}"
             )
 
-        help_text = f"""
+        help_text = """
 Installation instructions for {runner}:
 
 {instructions.get('description', 'No description available')}

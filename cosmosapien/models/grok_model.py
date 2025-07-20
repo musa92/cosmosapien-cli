@@ -1,7 +1,6 @@
 """Grok (xAI) model implementation."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import httpx
 
@@ -23,7 +22,7 @@ class Grok(BaseModel):
         self.base_url = base_url or "https://api.x.ai/v1"
         self.client = httpx.AsyncClient(
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": "Bearer {api_key}",
                 "Content-Type": "application/json",
             }
         )
@@ -38,7 +37,7 @@ class Grok(BaseModel):
             }
 
             response = await self.client.post(
-                f"{self.base_url}/chat/completions", json=payload
+                "{self.base_url}/chat/completions", json=payload
             )
             response.raise_for_status()
             data = response.json()
@@ -61,8 +60,8 @@ class Grok(BaseModel):
                     "index": data["choices"][0]["index"],
                 },
             )
-        except Exception as e:
-            raise Exception(f"Grok API error: {str(e)}")
+        except Exception:
+            raise Exception("Grok API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from Grok."""
@@ -81,7 +80,7 @@ class Grok(BaseModel):
             payload = {"model": self.model, "messages": grok_messages, **kwargs}
 
             response = await self.client.post(
-                f"{self.base_url}/chat/completions", json=payload
+                "{self.base_url}/chat/completions", json=payload
             )
             response.raise_for_status()
             data = response.json()
@@ -104,8 +103,8 @@ class Grok(BaseModel):
                     "index": data["choices"][0]["index"],
                 },
             )
-        except Exception as e:
-            raise Exception(f"Grok API error: {str(e)}")
+        except Exception:
+            raise Exception("Grok API error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available Grok models."""

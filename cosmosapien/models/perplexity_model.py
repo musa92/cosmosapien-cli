@@ -1,7 +1,6 @@
 """Perplexity model implementation."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import httpx
 
@@ -23,7 +22,7 @@ class Perplexity(BaseModel):
         self.base_url = base_url or "https://api.perplexity.ai"
         self.client = httpx.AsyncClient(
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": "Bearer {api_key}",
                 "Content-Type": "application/json",
             }
         )
@@ -38,7 +37,7 @@ class Perplexity(BaseModel):
             }
 
             response = await self.client.post(
-                f"{self.base_url}/chat/completions", json=payload
+                "{self.base_url}/chat/completions", json=payload
             )
             response.raise_for_status()
             data = response.json()
@@ -53,8 +52,8 @@ class Perplexity(BaseModel):
                     "index": data["choices"][0].get("index"),
                 },
             )
-        except Exception as e:
-            raise Exception(f"Perplexity API error: {str(e)}")
+        except Exception:
+            raise Exception("Perplexity API error: {str(e)}")
 
     async def chat(self, messages: List[ChatMessage], **kwargs) -> ModelResponse:
         """Generate a chat response from Perplexity."""
@@ -72,7 +71,7 @@ class Perplexity(BaseModel):
             payload = {"model": self.model, "messages": perplexity_messages, **kwargs}
 
             response = await self.client.post(
-                f"{self.base_url}/chat/completions", json=payload
+                "{self.base_url}/chat/completions", json=payload
             )
             response.raise_for_status()
             data = response.json()
@@ -87,8 +86,8 @@ class Perplexity(BaseModel):
                     "index": data["choices"][0].get("index"),
                 },
             )
-        except Exception as e:
-            raise Exception(f"Perplexity API error: {str(e)}")
+        except Exception:
+            raise Exception("Perplexity API error: {str(e)}")
 
     def get_available_models(self) -> List[str]:
         """Get list of available Perplexity models."""

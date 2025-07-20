@@ -1,12 +1,11 @@
 """Model library for storing and managing model configurations."""
 
 import json
-import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from .config import ConfigManager
 
@@ -120,8 +119,8 @@ class ModelLibrary:
                     data = json.load(f)
                     for model_id, model_data in data.items():
                         self.models[model_id] = ModelConfig.from_dict(model_data)
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"Warning: Could not load model library: {e}")
+            except (json.JSONDecodeError, IOError):
+                print("Warning: Could not load model library: {e}")
 
     def _save_library(self):
         """Save model library to file."""
@@ -131,8 +130,8 @@ class ModelLibrary:
             }
             with open(self.library_file, "w") as f:
                 json.dump(data, f, indent=2)
-        except IOError as e:
-            print(f"Warning: Could not save model library: {e}")
+        except IOError:
+            print("Warning: Could not save model library: {e}")
 
     def _initialize_default_models(self):
         """Initialize with default model configurations."""
@@ -504,7 +503,7 @@ class ModelLibrary:
 
     def add_model(self, model: ModelConfig) -> bool:
         """Add a model to the library."""
-        model_id = f"{model.provider}:{model.model_id}"
+        model_id = "{model.provider}:{model.model_id}"
         if model_id in self.models:
             return False
 
@@ -529,7 +528,7 @@ class ModelLibrary:
         return [
             model
             for model_id, model in self.models.items()
-            if model_id.startswith(f"{provider}:")
+            if model_id.startswith("{provider}:")
         ]
 
     def get_models_by_tier(self, tier: ModelTier) -> List[ModelConfig]:

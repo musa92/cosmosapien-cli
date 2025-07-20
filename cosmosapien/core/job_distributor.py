@@ -1,20 +1,19 @@
 """Intelligent job distribution system for multi-model task execution."""
 
 import asyncio
-import hashlib
 import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from .config import ConfigManager
 from .local_manager import LocalModelManager
 from .model_library import ModelLibrary
-from .smart_router import SmartRouter, TaskComplexity
+from .smart_router import SmartRouter
 
 
 class JobType(Enum):
@@ -108,7 +107,7 @@ class JobDistributor:
 
         for model in models:
             if model.is_active:
-                key = f"{model.provider}:{model.model_id}"
+                key = "{model.provider}:{model.model_id}"
                 self.model_status[key] = ModelStatus(
                     provider=model.provider,
                     model=model.model_id,
@@ -189,7 +188,7 @@ class JobDistributor:
         elif job_request.job_type == JobType.FALLBACK_CHAIN:
             return self._execute_fallback_chain(job_request)
         else:
-            raise ValueError(f"Unknown job type: {job_request.job_type}")
+            raise ValueError("Unknown job type: {job_request.job_type}")
 
     def _execute_single_task(self, job_request: JobRequest) -> JobResult:
         """Execute a single task with the best available model."""
@@ -207,7 +206,7 @@ class JobDistributor:
 
         # Execute with selected model
         model_key = (
-            f"{routing_decision.selected_provider}:{routing_decision.selected_model}"
+            "{routing_decision.selected_provider}:{routing_decision.selected_model}"
         )
         return self._execute_with_model(job_request, model_key)
 
@@ -280,7 +279,7 @@ class JobDistributor:
 
             # Create sub-job for this step
             sub_job = JobRequest(
-                job_id=f"{job_request.job_id}_step_{model}",
+                job_id="{job_request.job_id}_step_{model}",
                 job_type=JobType.SINGLE_TASK,
                 prompt=current_prompt,
                 models=[model],
@@ -296,7 +295,7 @@ class JobDistributor:
                     model_used=model,
                     response="",
                     success=False,
-                    error=f"Pipeline failed at {model}: {result.error}",
+                    error="Pipeline failed at {model}: {result.error}",
                 )
 
             # Use result as input for next step
@@ -524,16 +523,14 @@ class JobDistributor:
         **kwargs,
     ) -> JobRequest:
         """Create a new job request."""
-        job_id = (
-            f"job_{int(time.time())}_{hashlib.md5(prompt.encode()).hexdigest()[:8]}"
-        )
+        job_id = "job_{int(time.time())}_{hashlib.md5(prompt.encode()).hexdigest()[:8]}"
 
         if models is None:
             # Use smart routing to select models
             routing_decision = self.smart_router.smart_route(prompt)
             if routing_decision.selected_provider != "none":
                 models = [
-                    f"{routing_decision.selected_provider}:{routing_decision.selected_model}"
+                    "{routing_decision.selected_provider}:{routing_decision.selected_model}"
                 ]
             else:
                 models = []

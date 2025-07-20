@@ -30,7 +30,7 @@ class AuthManager:
 
             # Get API key from user if not provided
             if not api_key:
-                api_key = getpass.getpass(f"Enter API key for {provider}: ")
+                api_key = getpass.getpass("Enter API key for {provider}: ")
 
             if not api_key.strip():
                 print("Error: API key cannot be empty")
@@ -42,11 +42,11 @@ class AuthManager:
             # Also store in config for easy access
             self.config_manager.set_api_key(provider, api_key)
 
-            print(f"Successfully logged in to {provider}")
+            print("Successfully logged in to {provider}")
             return True
 
-        except Exception as e:
-            print(f"Error logging in to {provider}: {str(e)}")
+        except Exception:
+            print("Error logging in to {provider}: {str(e)}")
             return False
 
     def logout(self, provider: str) -> bool:
@@ -61,11 +61,11 @@ class AuthManager:
                 provider_config.api_key = None
                 self.config_manager.set_provider_config(provider, provider_config)
 
-            print(f"Successfully logged out from {provider}")
+            print("Successfully logged out from {provider}")
             return True
 
-        except Exception as e:
-            print(f"Error logging out from {provider}: {str(e)}")
+        except Exception:
+            print("Error logging out from {provider}: {str(e)}")
             return False
 
     def get_api_key(self, provider: str) -> Optional[str]:

@@ -1,11 +1,8 @@
 """Plugin manager for extending Cosmosapien CLI."""
 
 import importlib
-import inspect
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-from ..core.models import BaseModel
 
 
 class PluginManager:
@@ -20,7 +17,7 @@ class PluginManager:
         """Load a plugin by name."""
         try:
             # Try to load from plugins directory first
-            plugin_file = self.plugins_path / f"{plugin_name}.py"
+            plugin_file = self.plugins_path / "{plugin_name}.py"
             if plugin_file.exists():
                 spec = importlib.util.spec_from_file_location(plugin_name, plugin_file)
                 module = importlib.util.module_from_spec(spec)
@@ -36,8 +33,8 @@ class PluginManager:
             self.loaded_plugins[plugin_name] = module
             return True
 
-        except Exception as e:
-            print(f"Failed to load plugin {plugin_name}: {e}")
+        except Exception:
+            print("Failed to load plugin {plugin_name}: {e}")
             return False
 
     def load_all_plugins(self) -> List[str]:

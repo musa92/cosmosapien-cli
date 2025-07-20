@@ -1,18 +1,15 @@
 """Smart router for cost-efficient model selection."""
 
-import hashlib
 import json
-import os
 import re
-from dataclasses import asdict, dataclass
-from datetime import date, datetime
+from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .config import ConfigManager
 from .local_manager import LocalModelManager
-from .models import ChatMessage
 
 
 class TaskComplexity(Enum):
@@ -142,7 +139,7 @@ class SmartRouter:
         if self.local_manager.detect_ollama():
             available_models = self.local_manager.get_available_models("ollama")
             for model in available_models[:3]:  # Top 3 models
-                quotas[f"llama_{model}"] = ProviderQuota(
+                quotas["llama_{model}"] = ProviderQuota(
                     provider="llama",
                     model=model,
                     free_tier_limit=float("inf"),
@@ -179,7 +176,7 @@ class SmartRouter:
         # Override with custom configuration
         for provider, models in cloud_providers.items():
             for model, info in models.items():
-                key = f"{provider}_{model}"
+                key = "{provider}_{model}"
 
                 # Use custom limits if configured
                 custom_limit = smart_config.free_tier_limits.get(provider, {}).get(
@@ -274,7 +271,7 @@ class SmartRouter:
                     return (
                         provider.provider,
                         provider.model,
-                        f"Cheapest available model ({provider.cost_per_call}$/call)",
+                        "Cheapest available model ({provider.cost_per_call}$/call)",
                     )
 
         elif complexity == TaskComplexity.SIMPLE:
@@ -285,7 +282,7 @@ class SmartRouter:
                         return (
                             provider.provider,
                             provider.model,
-                            f"Free/local model for simple task",
+                            "Free/local model for simple task",
                         )
 
             # Fallback to cheapest paid model
@@ -294,7 +291,7 @@ class SmartRouter:
                     return (
                         provider.provider,
                         provider.model,
-                        f"Cheapest available model ({provider.cost_per_call}$/call)",
+                        "Cheapest available model ({provider.cost_per_call}$/call)",
                     )
 
         elif complexity == TaskComplexity.MEDIUM:
@@ -317,7 +314,7 @@ class SmartRouter:
                         return (
                             provider.provider,
                             provider.model,
-                            f"Available model ({provider.cost_per_call}$/call)",
+                            "Available model ({provider.cost_per_call}$/call)",
                         )
 
         elif complexity == TaskComplexity.COMPLEX:
@@ -341,7 +338,7 @@ class SmartRouter:
                         return (
                             provider.provider,
                             provider.model,
-                            f"Cost-effective capable model ({provider.cost_per_call}$/call)",
+                            "Cost-effective capable model ({provider.cost_per_call}$/call)",
                         )
 
             # Fallback to any available
@@ -350,7 +347,7 @@ class SmartRouter:
                     return (
                         provider.provider,
                         provider.model,
-                        f"Available model for complex task ({provider.cost_per_call}$/call)",
+                        "Available model for complex task ({provider.cost_per_call}$/call)",
                     )
 
         else:  # EXPERT
@@ -384,7 +381,7 @@ class SmartRouter:
                     return (
                         provider.provider,
                         provider.model,
-                        f"Available model for expert task ({provider.cost_per_call}$/call)",
+                        "Available model for expert task ({provider.cost_per_call}$/call)",
                     )
 
         # If no provider available, return None
@@ -438,13 +435,13 @@ class SmartRouter:
                 provider.provider != selected_provider
                 or provider.model != selected_model
             ):
-                alt_reason = f"Alternative: {provider.provider}/{provider.model}"
+                alt_reason = "Alternative: {provider.provider}/{provider.model}"
                 if provider.is_local:
                     alt_reason += " (local)"
                 elif provider.cost_per_call == 0.0:
                     alt_reason += " (free)"
                 else:
-                    alt_reason += f" (${provider.cost_per_call}/call)"
+                    alt_reason += " (${provider.cost_per_call}/call)"
                 alternatives.append((provider.provider, provider.model, alt_reason))
 
         # Calculate estimated cost
@@ -467,7 +464,7 @@ class SmartRouter:
 
     def _update_usage(self, provider: str, model: str):
         """Update usage statistics."""
-        key = f"{provider}_{model}"
+        key = "{provider}_{model}"
 
         if key not in self.usage_data.get("providers", {}):
             self.usage_data.setdefault("providers", {})[key] = {
@@ -509,7 +506,7 @@ class SmartRouter:
         if provider:
             # Reset specific provider
             for key in list(self.usage_data.get("providers", {}).keys()):
-                if key.startswith(f"{provider}_"):
+                if key.startswith("{provider}_"):
                     self.usage_data["providers"][key]["used_calls"] = 0
                     self.usage_data["providers"][key][
                         "reset_date"
